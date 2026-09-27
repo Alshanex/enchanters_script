@@ -1,5 +1,7 @@
 package com.example.examplemod;
 
+import net.alshanex.starlit_enchanting.CommonClass;
+import net.alshanex.starlit_enchanting.Constants;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod(Constants.MOD_ID)
