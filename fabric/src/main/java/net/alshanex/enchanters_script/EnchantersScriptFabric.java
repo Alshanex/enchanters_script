@@ -2,7 +2,7 @@ package net.alshanex.enchanters_script;
 
 import net.fabricmc.api.ModInitializer;
 
-public class StarlitEnchantingFabric implements ModInitializer {
+public class EnchantersScriptFabric implements ModInitializer {
     
     @Override
     public void onInitialize() {

@@ -16,7 +16,7 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-            "net.alshanex.enchanters_script.StarlitEnchantingFabric"
+            "net.alshanex.enchanters_script.EnchantersScriptFabric"
         ]
     },
     "mixins": [
