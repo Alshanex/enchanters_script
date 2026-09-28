@@ -1,4 +1,4 @@
-package net.alshanex.starlit_enchanting.platform.services;
+package net.alshanex.enchanters_script.platform.services;
 
 public interface IPlatformHelper {
 

@@ -1,6 +1,6 @@
-package net.alshanex.starlit_enchanting.platform;
+package net.alshanex.enchanters_script.platform;
 
-import net.alshanex.starlit_enchanting.platform.services.IPlatformHelper;
+import net.alshanex.enchanters_script.platform.services.IPlatformHelper;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 

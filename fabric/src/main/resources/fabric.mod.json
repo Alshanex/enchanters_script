@@ -16,12 +16,12 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-            "net.alshanex.starlit_enchanting.StarlitEnchantingFabric"
+            "net.alshanex.enchanters_script.StarlitEnchantingFabric"
         ]
     },
     "mixins": [
-        "starlit_enchanting.mixins.json",
-        "starlit_enchanting.fabric.mixins.json"
+      "enchanters_script.mixins.json",
+      "enchanters_script.fabric.mixins.json"
     ],
     "depends": {
         "fabricloader": ">=${fabric_loader_version}",

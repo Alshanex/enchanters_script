@@ -1,6 +1,6 @@
-package net.alshanex.starlit_enchanting;
+package net.alshanex.enchanters_script;
 
-import net.alshanex.starlit_enchanting.platform.Services;
+import net.alshanex.enchanters_script.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 

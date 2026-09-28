@@ -1,4 +1,4 @@
-package net.alshanex.starlit_enchanting;
+package net.alshanex.enchanters_script;
 
 
 import net.neoforged.bus.api.IEventBus;

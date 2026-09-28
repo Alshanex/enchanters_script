@@ -1,16 +1,16 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.alshanex.starlit_enchanting.mixin",
+  "package": "net.alshanex.enchanters_script.mixin",
   "refmap": "${mod_id}.refmap.json",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_18",
   "mixins": [],
   "client": [
-    "MixinTitleScreen"
+    "MixinMinecraft"
   ],
   "server": [],
   "injectors": {
     "defaultRequire": 1
   }
 }
-  
+

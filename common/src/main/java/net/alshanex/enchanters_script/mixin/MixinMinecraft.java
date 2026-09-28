@@ -1,6 +1,6 @@
-package net.alshanex.starlit_enchanting.mixin;
+package net.alshanex.enchanters_script.mixin;
 
-import net.alshanex.starlit_enchanting.Constants;
+import net.alshanex.enchanters_script.Constants;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
