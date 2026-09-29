@@ -3,7 +3,7 @@ package net.alshanex.enchanters_script.cipher;
 import com.mojang.serialization.DataResult;
 import net.minecraft.util.RandomSource;
 
-public class WorldCipher {
+public final class WorldCipher {
     private static final int LETTERS = 26;
 
     private final int[] forward;
@@ -79,9 +79,9 @@ public class WorldCipher {
     }
 
     public static DataResult<WorldCipher> fromArray(int[] symbols){
-        boolean[] marks = new boolean[26];
+        boolean[] marks = new boolean[LETTERS];
 
-        if(symbols.length != 26){
+        if(symbols.length != LETTERS){
             return DataResult.error(() -> "Saved cipher has " + symbols.length + " entries, but needs 26");
         }
         for(int i = 0; i < symbols.length; i++){
