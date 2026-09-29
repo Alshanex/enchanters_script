@@ -31,6 +31,6 @@ public class EnchantersScriptNeoforge {
     }
 
     private static void onServerLoad (ServerStartedEvent event){
-        Constants.LOG.info(CipherSavedData.get(event.getServer()).encode("CURSE OF BINDING"));
+        //Constants.LOG.info(CipherSavedData.get(event.getServer()).encode("CURSE OF BINDING"));
     }
 }

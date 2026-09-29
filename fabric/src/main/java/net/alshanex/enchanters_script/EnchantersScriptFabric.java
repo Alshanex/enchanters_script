@@ -22,6 +22,6 @@ public class EnchantersScriptFabric implements ModInitializer {
 
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricWordReloadListener());
 
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> Constants.LOG.info(CipherSavedData.get(server).encode("CURSE OF BINDING")));
+        //ServerLifecycleEvents.SERVER_STARTED.register(server -> Constants.LOG.info(CipherSavedData.get(server).encode("CURSE OF BINDING")));
     }
 }
