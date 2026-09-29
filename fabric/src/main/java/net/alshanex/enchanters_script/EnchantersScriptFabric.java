@@ -1,7 +1,9 @@
 package net.alshanex.enchanters_script;
 
+import net.alshanex.enchanters_script.data.CipherSavedData;
 import net.alshanex.enchanters_script.word.FabricWordReloadListener;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;
 
@@ -19,5 +21,7 @@ public class EnchantersScriptFabric implements ModInitializer {
         CommonClass.init();
 
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricWordReloadListener());
+
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> Constants.LOG.info(CipherSavedData.get(server).encode("CURSE OF BINDING")));
     }
 }

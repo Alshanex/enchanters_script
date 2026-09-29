@@ -8,7 +8,6 @@ public final class EnchantmentWords {
     private volatile Map<ResourceLocation, String> overrides = Map.of();
 
     public static final EnchantmentWords SERVER = new EnchantmentWords();
-    public static final EnchantmentWords CLIENT = new EnchantmentWords();
 
     private EnchantmentWords() {
     }
