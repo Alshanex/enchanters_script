@@ -1,8 +1,11 @@
 package net.alshanex.enchanters_script;
 
 
+import net.alshanex.enchanters_script.word.WordReloadListener;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 
 @Mod(Constants.MOD_ID)
 public class EnchantersScriptNeoforge {
@@ -17,5 +20,10 @@ public class EnchantersScriptNeoforge {
         Constants.LOG.info("Hello NeoForge world!");
         CommonClass.init();
 
+        NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onAddReloadListeners);
+    }
+
+    private static void onAddReloadListeners(AddReloadListenerEvent event) {
+        event.addListener(new WordReloadListener());
     }
 }
