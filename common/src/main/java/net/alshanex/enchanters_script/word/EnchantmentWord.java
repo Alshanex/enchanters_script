@@ -15,40 +15,34 @@ public record EnchantmentWord(ResourceLocation enchantment, String word) {
             VALID_WORD.fieldOf("word").forGetter(EnchantmentWord::word)
     ).apply(instance, EnchantmentWord::new));
 
+    private static final int MAX_LETTERS = 32;
+
     static DataResult<String> validateWord(String word) {
-        int counter = 0;
-        char lastChar = '.';
-
-        if(word.isEmpty()){
-            return DataResult.error(() -> "There's no word to read");
+        if (word.isEmpty()) {
+            return DataResult.error(() -> "The word is empty");
+        }
+        if (word.charAt(0) == ' ' || word.charAt(word.length() - 1) == ' ') {
+            return DataResult.error(() -> "Word \"" + word + "\" starts or ends with a space");
         }
 
-        if (word.charAt(0) == ' ' || word.charAt(word.length() - 1) == ' '){
-            return DataResult.error(() -> "Words can't have spaces at the start or at the end of the word");
-        }
-
-        for (int i = 0; i < word.length(); i++){
-            char currentChar = word.charAt(i);
-
-            boolean isLetter = (currentChar >= 'a' && currentChar <= 'z') || (currentChar >= 'A' && currentChar <= 'Z');
-
-            if(!(isLetter || currentChar == ' ')){
-                return DataResult.error(() -> "Word \"" + word + "\" contains '" + currentChar + "', but only letters and spaces are allowed");
-            }
-            if(lastChar == ' ' && currentChar == ' '){
-                return DataResult.error(() -> "The word " + word + " has two spaces in a row");
-            }
-            lastChar = currentChar;
-
-            if (isLetter) {
-                counter++;
+        int letters = 0;
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            if (c == ' ') {
+                if (word.charAt(i - 1) == ' ') {
+                    return DataResult.error(() -> "Word \"" + word + "\" has two spaces in a row");
+                }
+            } else if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                letters++;
+            } else {
+                return DataResult.error(() -> "Word \"" + word + "\" contains '" + c + "', but only letters and spaces are allowed");
             }
         }
 
-        if(counter < 1 || counter > 32){
-            return DataResult.error(() -> "Words need to have between 1 and 32 letters");
+        if (letters > MAX_LETTERS) {
+            int count = letters;
+            return DataResult.error(() -> "Word \"" + word + "\" has " + count + " letters, but the maximum is " + MAX_LETTERS);
         }
-
         return DataResult.success(word.toUpperCase(Locale.ROOT));
     }
 }
