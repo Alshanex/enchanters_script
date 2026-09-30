@@ -1,7 +1,9 @@
 package net.alshanex.enchanters_script;
 
 
+import net.alshanex.enchanters_script.client.ClientPayloadHandler;
 import net.alshanex.enchanters_script.data.CipherSavedData;
+import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.word.WordReloadListener;
 import net.minecraft.core.registries.Registries;
@@ -10,6 +12,8 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 @Mod(Constants.MOD_ID)
@@ -29,6 +33,7 @@ public class EnchantersScriptNeoforge {
 
         NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onServerLoad);
+        eventBus.addListener(EnchantersScriptNeoforge::onRegisterPayloads);
     }
 
     private static void onAddReloadListeners(AddReloadListenerEvent event) {
@@ -42,5 +47,11 @@ public class EnchantersScriptNeoforge {
     private static void onRegister(RegisterEvent event) {
         event.register(Registries.MENU, helper ->
                 helper.register(ModMenus.ENCHANTING_TABLE_ID, ModMenus.ENCHANTING_TABLE));
+    }
+
+    private static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar("1.0");
+        registrar.playToClient(OfferPreviewsPayload.TYPE, OfferPreviewsPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.handleOfferPreviews(payload));
     }
 }

@@ -1,8 +1,14 @@
 package net.alshanex.enchanters_script.enchanting;
 
 import com.mojang.datafixers.util.Pair;
+import net.alshanex.enchanters_script.Constants;
+import net.alshanex.enchanters_script.cipher.WorldCipher;
+import net.alshanex.enchanters_script.data.CipherSavedData;
+import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
+import net.alshanex.enchanters_script.platform.Services;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -12,11 +18,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class EnchantersTableMenu extends AbstractContainerMenu {
     static final ResourceLocation EMPTY_SLOT_LAPIS_LAZULI = ResourceLocation.withDefaultNamespace("item/empty_slot_lapis_lazuli");
     static final ResourceLocation EMPTY_SLOT_AMETYST_SHARD = ResourceLocation.withDefaultNamespace("item/empty_slot_amethyst_shard");
     private final Container enchantSlots;
     private final ContainerLevelAccess access;
+    private final Player player;
+    private List<Offer> offers = List.of();
+    private List<OfferPreview> previews = List.of();
 
     public EnchantersTableMenu(int containerId, Inventory playerInventory) {
         this(containerId, playerInventory, ContainerLevelAccess.NULL);
@@ -30,7 +42,10 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
                 EnchantersTableMenu.this.slotsChanged(this);
             }
         };
+
         this.access = access;
+        this.player = playerInventory.player;
+
         this.addSlot(new Slot(this.enchantSlots, 0, 10, 62) {
             public int getMaxStackSize() {
                 return 1;
@@ -129,5 +144,47 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
         }
 
         return itemStack;
+    }
+
+    @Override
+    public void slotsChanged(Container container) {
+        if (container != this.enchantSlots) {
+            return;
+        }
+
+        ItemStack itemStack = container.getItem(0);
+        this.access.execute((level, blockPos) -> {
+            List<Offer> newOffers = List.of();
+            List<OfferPreview> newPreviews = List.of();
+
+            if (!itemStack.isEmpty() && itemStack.isEnchantable() && level.getServer() != null) {
+                int shelves = OfferGenerator.countBookshelves(level, blockPos);
+                newOffers = OfferGenerator.generate(level.registryAccess(), itemStack, shelves, this.player.getEnchantmentSeed());
+
+                WorldCipher cipher = CipherSavedData.get(level.getServer());
+                List<OfferPreview> built = new ArrayList<>();
+                for (Offer offer : newOffers) {
+                    built.add(OfferPreview.from(offer, cipher));
+                }
+                newPreviews = built;
+            }
+
+            this.offers = newOffers;
+
+            if (!newPreviews.equals(this.previews)) {
+                this.previews = newPreviews;
+                if (this.player instanceof ServerPlayer serverPlayer) {
+                    Services.NETWORK.sendToPlayer(serverPlayer, new OfferPreviewsPayload(this.containerId, newPreviews));
+                }
+            }
+        });
+    }
+
+    public List<OfferPreview> previews() {
+        return this.previews;
+    }
+
+    public void setPreviews(List<OfferPreview> previews) {
+        this.previews = List.copyOf(previews);
     }
 }
