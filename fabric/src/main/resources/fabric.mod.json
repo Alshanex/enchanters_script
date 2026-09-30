@@ -17,12 +17,16 @@
     "entrypoints": {
         "main": [
             "net.alshanex.enchanters_script.EnchantersScriptFabric"
+        ],
+        "client": [
+            "net.alshanex.enchanters_script.EnchantersScriptFabricClient"
         ]
     },
     "mixins": [
       "enchanters_script.mixins.json",
       "enchanters_script.fabric.mixins.json"
     ],
+    "accessWidener": "enchanters_script.accesswidener",
     "depends": {
         "fabricloader": ">=${fabric_loader_version}",
         "fabric-api": "*",

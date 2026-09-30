@@ -2,12 +2,15 @@ package net.alshanex.enchanters_script;
 
 
 import net.alshanex.enchanters_script.data.CipherSavedData;
+import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.word.WordReloadListener;
+import net.minecraft.core.registries.Registries;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 @Mod(Constants.MOD_ID)
 public class EnchantersScriptNeoforge {
@@ -22,6 +25,8 @@ public class EnchantersScriptNeoforge {
         Constants.LOG.info("Hello NeoForge world!");
         CommonClass.init();
 
+        eventBus.addListener(EnchantersScriptNeoforge::onRegister);
+
         NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onServerLoad);
     }
@@ -32,5 +37,10 @@ public class EnchantersScriptNeoforge {
 
     private static void onServerLoad (ServerStartedEvent event){
         //Constants.LOG.info(CipherSavedData.get(event.getServer()).encode("CURSE OF BINDING"));
+    }
+
+    private static void onRegister(RegisterEvent event) {
+        event.register(Registries.MENU, helper ->
+                helper.register(ModMenus.ENCHANTING_TABLE_ID, ModMenus.ENCHANTING_TABLE));
     }
 }
