@@ -64,7 +64,7 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
             }
         });
 
-        this.addSlot(new Slot(this.enchantSlots, 2, 46, 62) {
+        this.addSlot(new Slot(this.enchantSlots, 2, 224, 130) {
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(Items.AMETHYST_SHARD);
             }
