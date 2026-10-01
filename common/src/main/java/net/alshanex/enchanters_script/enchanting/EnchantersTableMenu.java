@@ -331,7 +331,7 @@ public class EnchantersTableMenu extends AbstractContainerMenu implements Writin
             String tiles = KeyboardLayout.join(KeyboardLayout.generate(fullWord, offer.level(), level.getRandom()));
 
             int revealTicks = MinigameTimers.revealTicks(fullWord);
-            int writingTicks = MinigameTimers.writingTicks(lapisCount);
+            int writingTicks = MinigameTimers.writingTicks(fullWord, lapisCount);
 
             this.chosenOffer = offer;
             this.session = WritingSession.start(fullWord, tiles, level.getGameTime(), revealTicks, writingTicks);
