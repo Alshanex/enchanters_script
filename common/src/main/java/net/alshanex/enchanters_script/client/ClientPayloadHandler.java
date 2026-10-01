@@ -3,11 +3,13 @@ package net.alshanex.enchanters_script.client;
 import net.alshanex.enchanters_script.Constants;
 import net.alshanex.enchanters_script.enchanting.EnchantersTableMenu;
 import net.alshanex.enchanters_script.enchanting.OfferPreview;
+import net.alshanex.enchanters_script.minigame.WritingMenu;
 import net.alshanex.enchanters_script.network.BonusViewPayload;
 import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
 import net.alshanex.enchanters_script.network.WritingStartPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
 public final class ClientPayloadHandler {
 
@@ -37,7 +39,8 @@ public final class ClientPayloadHandler {
             return;
         }
 
-        if (player.containerMenu instanceof EnchantersTableMenu menu && menu.containerId == payload.containerId()) {
+        AbstractContainerMenu open = player.containerMenu;
+        if (open.containerId == payload.containerId() && open instanceof WritingMenu menu) {
             menu.setWriting(payload.writing());
         }
     }

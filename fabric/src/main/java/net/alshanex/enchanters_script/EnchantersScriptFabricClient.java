@@ -1,5 +1,6 @@
 package net.alshanex.enchanters_script;
 
+import net.alshanex.enchanters_script.client.BookScreen;
 import net.alshanex.enchanters_script.client.ClientPayloadHandler;
 import net.alshanex.enchanters_script.client.EnchantersTableScreen;
 import net.alshanex.enchanters_script.network.BonusViewPayload;
@@ -17,6 +18,7 @@ public class EnchantersScriptFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         MenuScreens.register(ModMenus.ENCHANTING_TABLE, EnchantersTableScreen::new);
+        MenuScreens.register(ModMenus.BOOK, BookScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(OfferPreviewsPayload.TYPE,
                 (payload, context) -> ClientPayloadHandler.handleOfferPreviews(payload));

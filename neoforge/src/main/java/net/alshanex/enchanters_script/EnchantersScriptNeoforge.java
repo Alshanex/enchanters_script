@@ -4,6 +4,7 @@ package net.alshanex.enchanters_script;
 import net.alshanex.enchanters_script.client.ClientPayloadHandler;
 import net.alshanex.enchanters_script.data.CipherSavedData;
 import net.alshanex.enchanters_script.network.*;
+import net.alshanex.enchanters_script.registry.ModComponents;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.word.WordReloadListener;
 import net.minecraft.core.registries.Registries;
@@ -45,8 +46,13 @@ public class EnchantersScriptNeoforge {
     }
 
     private static void onRegister(RegisterEvent event) {
-        event.register(Registries.MENU, helper ->
-                helper.register(ModMenus.ENCHANTING_TABLE_ID, ModMenus.ENCHANTING_TABLE));
+        event.register(Registries.MENU, helper -> {
+            helper.register(ModMenus.ENCHANTING_TABLE_ID, ModMenus.ENCHANTING_TABLE);
+            helper.register(ModMenus.BOOK_ID, ModMenus.BOOK);
+        });
+
+        event.register(Registries.DATA_COMPONENT_TYPE, helper ->
+                helper.register(ModComponents.DECIPHERED_ID, ModComponents.DECIPHERED));
     }
 
     private static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {

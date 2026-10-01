@@ -5,7 +5,10 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_18",
   "mixins": [
-    "MixinEnchantingTableBlock"
+    "MixinEnchantingTableBlock",
+    "MixinAnvilMenu",
+    "MixinItemStack",
+    "MixinItem"
   ],
   "client": [],
   "server": [],

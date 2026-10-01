@@ -2,6 +2,7 @@ package net.alshanex.enchanters_script;
 
 import net.alshanex.enchanters_script.data.CipherSavedData;
 import net.alshanex.enchanters_script.network.*;
+import net.alshanex.enchanters_script.registry.ModComponents;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.word.FabricWordReloadListener;
 import net.fabricmc.api.ModInitializer;
@@ -36,6 +37,8 @@ public class EnchantersScriptFabric implements ModInitializer {
                 (payload, context) -> ServerPayloadHandler.handleWritingAction(context.player(), payload));
 
         Registry.register(BuiltInRegistries.MENU, ModMenus.ENCHANTING_TABLE_ID, ModMenus.ENCHANTING_TABLE);
+        Registry.register(BuiltInRegistries.MENU, ModMenus.BOOK_ID, ModMenus.BOOK);
+        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, ModComponents.DECIPHERED_ID, ModComponents.DECIPHERED);
 
         //ServerLifecycleEvents.SERVER_STARTED.register(server -> Constants.LOG.info(CipherSavedData.get(server).encode("CURSE OF BINDING")));
     }

@@ -1,6 +1,7 @@
 package net.alshanex.enchanters_script.enchanting;
 
 import com.mojang.datafixers.util.Pair;
+import net.alshanex.enchanters_script.book.CipheredBooks;
 import net.alshanex.enchanters_script.cipher.WorldCipher;
 import net.alshanex.enchanters_script.data.CipherSavedData;
 import net.alshanex.enchanters_script.minigame.*;
@@ -34,7 +35,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnchantersTableMenu extends AbstractContainerMenu {
+public class EnchantersTableMenu extends AbstractContainerMenu implements WritingMenu {
     // Which view the screen shows; synced to the client through a data slot
     public static final int VIEW_OFFERS = 0;
     public static final int VIEW_WRITING = 1;
@@ -67,6 +68,9 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
     @Nullable
     private PickSelection bonusSelection;
     private int bonusRevealsLeft;
+
+    @Nullable
+    private Offer chosenOffer;
 
     public EnchantersTableMenu(int containerId, Inventory playerInventory) {
         this(containerId, playerInventory, ContainerLevelAccess.NULL);
@@ -175,7 +179,7 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
         super.removed(player);
         this.access.execute((level, blockPos) -> {
             // Closing mid-minigame or during bonuses: main enchantment only
-            if (this.session != null) {
+            if (this.chosenOffer != null) {
                 this.bonus = null;
                 applyEnchantments(player, level, blockPos, List.of());
             }
@@ -324,17 +328,13 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
 
             String fullWord = EnchantmentWords.SERVER.fullWord(offer.enchantment(), offer.level());
 
-            List<Character> tileList = KeyboardLayout.generate(fullWord, offer.level(), level.getRandom());
-            StringBuilder tileLetters = new StringBuilder();
-            for (char tile : tileList) {
-                tileLetters.append(tile);
-            }
-            String tiles = tileLetters.toString();
+            String tiles = KeyboardLayout.join(KeyboardLayout.generate(fullWord, offer.level(), level.getRandom()));
 
             int revealTicks = MinigameTimers.revealTicks(fullWord);
             int writingTicks = MinigameTimers.writingTicks(lapisCount);
 
-            this.session = WritingSession.start(offer, fullWord, tiles, level.getGameTime(), revealTicks, writingTicks);
+            this.chosenOffer = offer;
+            this.session = WritingSession.start(fullWord, tiles, level.getGameTime(), revealTicks, writingTicks);
 
             // Encode everything the client will draw
             WorldCipher cipher = CipherSavedData.get(level.getServer());
@@ -348,10 +348,12 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
     }
 
     @Nullable
+    @Override
     public WritingView writing() {
         return this.writing;
     }
 
+    @Override
     public void setWriting(WritingView writing) {
         this.writing = writing;
     }
@@ -361,6 +363,7 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
     /**
      * A writing move from the client's packet. Every move is checked before it's applied.
      */
+    @Override
     public void handleWritingAction(Player player, int action, int slot, int key) {
         if (!isView(VIEW_WRITING) || this.session == null) {
             return;
@@ -404,7 +407,7 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
             this.writing = null;
 
             List<EnchantmentInstance> choices = BonusGenerator.generate(level.registryAccess(),
-                    this.enchantSlots.getItem(0), finished.offer(), rating.bonusChoices(), level.getRandom());
+                    this.enchantSlots.getItem(0), this.chosenOffer, rating.bonusChoices(), level.getRandom());
 
 
             // Nothing to choose from: finish right away
@@ -511,7 +514,8 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
     }
 
     private void applyEnchantments(Player player, Level level, BlockPos blockPos, List<EnchantmentInstance> extras) {
-        Offer offer = this.session.offer();
+        Offer offer = this.chosenOffer;
+        this.chosenOffer = null;
         this.session = null;
 
         ItemStack item = this.enchantSlots.getItem(0);
@@ -525,6 +529,10 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
         for (EnchantmentInstance extra : extras) {
             result.enchant(extra.enchantment, extra.level);
         }
+        // The minigame was already played here, so table books are never ciphered
+        if (result.is(Items.ENCHANTED_BOOK)) {
+            CipheredBooks.markDeciphered(result);
+        }
         this.enchantSlots.setItem(0, result);
 
         player.awardStat(Stats.ENCHANT_ITEM);
@@ -534,4 +542,6 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
         level.playSound(null, blockPos, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.BLOCKS,
                 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
     }
+
+
 }

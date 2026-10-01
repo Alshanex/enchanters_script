@@ -36,4 +36,15 @@ public final class KeyboardLayout {
 
         return keys;
     }
+
+    /**
+     * The keys as one string, one character per tile.
+     */
+    public static String join(List<Character> keys) {
+        StringBuilder text = new StringBuilder(keys.size());
+        for (char key : keys) {
+            text.append(key);
+        }
+        return text.toString();
+    }
 }

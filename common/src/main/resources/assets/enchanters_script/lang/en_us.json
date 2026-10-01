@@ -3,5 +3,14 @@
   "gui.enchanters_script.picks": "Picks: %s/%s",
   "gui.enchanters_script.confirm": "Confirm",
   "gui.enchanters_script.use": "Use",
-  "gui.enchanters_script.reveals_left": "%s left"
+  "gui.enchanters_script.reveals_left": "%s left",
+
+  "tooltip.enchanters_script.ciphered": "Ciphered",
+  "tooltip.enchanters_script.decipher_hint": "Right-click to decipher",
+
+  "message.enchanters_script.book_perfect": "Perfectly deciphered: the enchantment grew stronger",
+  "message.enchanters_script.book_decent": "Deciphered",
+  "message.enchanters_script.book_bad": "Deciphered, but some of its power was lost",
+  "message.enchanters_script.book_retry": "Too little was right: the book stays ciphered",
+  "message.enchanters_script.not_enough_xp": "Deciphering this book costs %s levels"
 }
