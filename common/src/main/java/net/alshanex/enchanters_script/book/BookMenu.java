@@ -7,6 +7,7 @@ import net.alshanex.enchanters_script.minigame.*;
 import net.alshanex.enchanters_script.network.WritingActionPayload;
 import net.alshanex.enchanters_script.network.WritingStartPayload;
 import net.alshanex.enchanters_script.platform.Services;
+import net.alshanex.enchanters_script.primer.Primer;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.scoring.TranscriptionScore;
 import net.alshanex.enchanters_script.word.EnchantmentWords;
@@ -180,6 +181,10 @@ public class BookMenu extends AbstractContainerMenu implements WritingMenu {
         // A level I book can't lose a level, so a bad result counts as a retry instead
         if (result == BookResult.BAD && this.level <= 1) {
             result = BookResult.RETRY;
+        }
+
+        if (result.teachesLetters() && this.player instanceof ServerPlayer serverPlayer) {
+            Primer.learnFrom(serverPlayer, done.input(), done.fullWord());
         }
 
         if (this.player instanceof ServerPlayer serverPlayer) {

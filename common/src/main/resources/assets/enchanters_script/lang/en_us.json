@@ -4,6 +4,7 @@
   "gui.enchanters_script.confirm": "Confirm",
   "gui.enchanters_script.use": "Use",
   "gui.enchanters_script.reveals_left": "%s left",
+  "gui.enchanters_script.primer_progress": "Learned: %s/%s",
 
   "tooltip.enchanters_script.ciphered": "Ciphered",
   "tooltip.enchanters_script.decipher_hint": "Right-click to decipher",
@@ -12,5 +13,10 @@
   "message.enchanters_script.book_decent": "Deciphered",
   "message.enchanters_script.book_bad": "Deciphered, but some of its power was lost",
   "message.enchanters_script.book_retry": "Too little was right: the book stays ciphered",
-  "message.enchanters_script.not_enough_xp": "Deciphering this book costs %s levels"
+  "message.enchanters_script.not_enough_xp": "Deciphering this book costs %s levels",
+  "message.enchanters_script.letters_learned": "Your codex learned %s new letters",
+
+  "item.enchanters_script.primer": "Enchanter's Codex"
+
+
 }

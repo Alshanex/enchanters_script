@@ -5,14 +5,17 @@ import net.alshanex.enchanters_script.client.ClientPayloadHandler;
 import net.alshanex.enchanters_script.data.CipherSavedData;
 import net.alshanex.enchanters_script.network.*;
 import net.alshanex.enchanters_script.registry.ModComponents;
+import net.alshanex.enchanters_script.registry.ModItems;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.word.WordReloadListener;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -30,7 +33,10 @@ public class EnchantersScriptNeoforge {
         // Use NeoForge to bootstrap the Common mod.
         CommonClass.init();
 
+        NeoForgeAttachments.ATTACHMENT_TYPES.register(eventBus);
+
         eventBus.addListener(EnchantersScriptNeoforge::onRegister);
+        eventBus.addListener(EnchantersScriptNeoforge::onBuildCreativeTabs);
 
         NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onServerLoad);
@@ -53,6 +59,14 @@ public class EnchantersScriptNeoforge {
 
         event.register(Registries.DATA_COMPONENT_TYPE, helper ->
                 helper.register(ModComponents.DECIPHERED_ID, ModComponents.DECIPHERED));
+
+        event.register(Registries.ITEM, helper -> ModItems.register(helper::register));
+    }
+
+    private static void onBuildCreativeTabs(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            event.accept(ModItems.PRIMER);
+        }
     }
 
     private static void onRegisterPayloads(RegisterPayloadHandlersEvent event) {
@@ -63,6 +77,8 @@ public class EnchantersScriptNeoforge {
                 (payload, context) -> ClientPayloadHandler.handleWritingStart(payload));
         registrar.playToClient(BonusViewPayload.TYPE, BonusViewPayload.STREAM_CODEC,
                 (payload, context) -> ClientPayloadHandler.handleBonusView(payload));
+        registrar.playToClient(PrimerPayload.TYPE, PrimerPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.handlePrimer(payload));
 
         registrar.playToServer(WritingActionPayload.TYPE, WritingActionPayload.STREAM_CODEC,
                 (payload, context) -> ServerPayloadHandler.handleWritingAction((ServerPlayer) context.player(), payload));

@@ -10,6 +10,7 @@ import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
 import net.alshanex.enchanters_script.network.WritingActionPayload;
 import net.alshanex.enchanters_script.network.WritingStartPayload;
 import net.alshanex.enchanters_script.platform.Services;
+import net.alshanex.enchanters_script.primer.Primer;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.scoring.TranscriptionScore;
 import net.alshanex.enchanters_script.word.EnchantmentWords;
@@ -402,6 +403,10 @@ public class EnchantersTableMenu extends AbstractContainerMenu implements Writin
         String written = finished.input().text();
         float score = TranscriptionScore.score(written, finished.fullWord());
         TableRating rating = TableRating.fromScore(score);
+
+        if (rating.teachesLetters() && this.player instanceof ServerPlayer serverPlayer) {
+            Primer.learnFrom(serverPlayer, finished.input(), finished.fullWord());
+        }
 
         this.access.execute((level, blockPos) -> {
             this.writing = null;

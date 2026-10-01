@@ -30,4 +30,11 @@ public enum BookResult {
     public boolean deciphers(){
         return this != RETRY;
     }
+
+    /**
+     * Whether this result passes the minigame, which is what teaches letters for the primer.
+     */
+    public boolean teachesLetters() {
+        return this == PERFECT || this == DECENT;
+    }
 }

@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "minecraft:book" },
+    { "item": "minecraft:lapis_lazuli" },
+    { "item": "minecraft:amethyst_shard" }
+  ],
+  "result": {
+    "id": "enchanters_script:primer",
+    "count": 1
+  }
+}

@@ -6,6 +6,7 @@ import net.alshanex.enchanters_script.enchanting.OfferPreview;
 import net.alshanex.enchanters_script.minigame.WritingMenu;
 import net.alshanex.enchanters_script.network.BonusViewPayload;
 import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
+import net.alshanex.enchanters_script.network.PrimerPayload;
 import net.alshanex.enchanters_script.network.WritingStartPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -54,5 +55,9 @@ public final class ClientPayloadHandler {
         if (player.containerMenu instanceof EnchantersTableMenu menu && menu.containerId == payload.containerId()) {
             menu.setBonus(payload.previews(), payload.picks(), payload.revealsLeft(), payload.initial());
         }
+    }
+
+    public static void handlePrimer(PrimerPayload payload) {
+        Minecraft.getInstance().setScreen(new PrimerScreen(payload.page()));
     }
 }

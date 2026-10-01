@@ -5,6 +5,7 @@ import net.alshanex.enchanters_script.client.ClientPayloadHandler;
 import net.alshanex.enchanters_script.client.EnchantersTableScreen;
 import net.alshanex.enchanters_script.network.BonusViewPayload;
 import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
+import net.alshanex.enchanters_script.network.PrimerPayload;
 import net.alshanex.enchanters_script.network.WritingStartPayload;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.fabricmc.api.ClientModInitializer;
@@ -26,5 +27,7 @@ public class EnchantersScriptFabricClient implements ClientModInitializer {
                 (payload, context) -> ClientPayloadHandler.handleWritingStart(payload));
         ClientPlayNetworking.registerGlobalReceiver(BonusViewPayload.TYPE,
                 (payload, context) -> ClientPayloadHandler.handleBonusView(payload));
+        ClientPlayNetworking.registerGlobalReceiver(PrimerPayload.TYPE,
+                (payload, context) -> ClientPayloadHandler.handlePrimer(payload));
     }
 }

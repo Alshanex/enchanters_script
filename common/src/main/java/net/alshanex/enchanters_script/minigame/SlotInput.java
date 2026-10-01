@@ -100,4 +100,19 @@ public final class SlotInput {
         }
         return text.toString();
     }
+
+    /**
+     * The letters placed in their correct slots, compared with the real word.
+     * Only meaningful on the server, where the tiles are real letters.
+     */
+    public String correctLetters(String word) {
+        StringBuilder correct = new StringBuilder();
+        for (int slot = 0; slot < this.slots.length; slot++) {
+            int content = this.slots[slot];
+            if (content >= 0 && this.tiles.charAt(content) == word.charAt(slot)) {
+                correct.append(this.tiles.charAt(content));
+            }
+        }
+        return correct.toString();
+    }
 }

@@ -32,4 +32,11 @@ public enum TableRating {
         }
         return POOR;
     }
+
+    /**
+     * Whether this rating passes the minigame, which is what teaches letters for the primer.
+     */
+    public boolean teachesLetters() {
+        return this != POOR;
+    }
 }
