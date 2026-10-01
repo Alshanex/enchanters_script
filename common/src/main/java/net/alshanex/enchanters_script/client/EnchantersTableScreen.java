@@ -24,6 +24,14 @@ import net.minecraft.world.item.Items;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.inventory.InventoryMenu;
+import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
+import net.minecraft.client.model.BookModel;
+import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -57,6 +65,9 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
 
     private static final ResourceLocation EMPTY_SLOT_AMETHYST_SHARD =
             ResourceLocation.withDefaultNamespace("item/empty_slot_amethyst_shard");
+
+    private static final ResourceLocation BOOK_TEXTURE =
+            ResourceLocation.withDefaultNamespace("textures/entity/enchanting_table_book.png");
 
     // Offer buttons, taken from vanilla's EnchantmentScreen
     private static final int BUTTON_X = 60;
@@ -103,6 +114,17 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
     private static final int COST_COLOR = 0x80FF20;
     private static final int COST_DISABLED_COLOR = 0x407F10;
 
+    // The rotating book, as in vanilla's EnchantmentScreen
+    private final RandomSource random = RandomSource.create();
+    private BookModel bookModel;
+    private ItemStack lastItem = ItemStack.EMPTY;
+    private float flip;
+    private float oFlip;
+    private float flipT;
+    private float flipA;
+    private float open;
+    private float oOpen;
+
     @Nullable
     private WritingPage page;
     @Nullable
@@ -123,6 +145,7 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
                 for (int row = 0; row < BUTTON_ROWS; row++) {
                     renderButton(guiGraphics, row, mouseX, mouseY);
                 }
+                renderBook(guiGraphics, leftPos, topPos, partialTick);
             }
             case EnchantersTableMenu.VIEW_WRITING -> {
                 WritingPage current = currentPage();
@@ -131,6 +154,7 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
                 }
             }
             case EnchantersTableMenu.VIEW_BONUS -> renderBonus(guiGraphics, mouseX, mouseY);
+
             default -> {
             }
         }
@@ -462,5 +486,71 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
 
     private void playClick() {
         minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        this.bookModel = new BookModel(this.minecraft.getEntityModels().bakeLayer(ModelLayers.BOOK));
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        tickBook();
+    }
+
+    /**
+     * Draws the 3D book in the top-left of the panel.
+     */
+    private void renderBook(GuiGraphics guiGraphics, int x, int y, float partialTick) {
+        float openness = Mth.lerp(partialTick, this.oOpen, this.open);
+        float flipProgress = Mth.lerp(partialTick, this.oFlip, this.flip);
+
+        Lighting.setupForEntityInInventory();
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(x + 33.0F, y + 31.0F, 100.0F);
+        guiGraphics.pose().scale(-40.0F, 40.0F, 40.0F);
+        guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(25.0F));
+        guiGraphics.pose().translate((1.0F - openness) * 0.2F, (1.0F - openness) * 0.1F, (1.0F - openness) * 0.25F);
+        guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(-(1.0F - openness) * 90.0F - 90.0F));
+        guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(180.0F));
+
+        // The two pages turning, each offset by half a flip
+        float leftPage = Mth.clamp(Mth.frac(flipProgress + 0.25F) * 1.6F - 0.3F, 0.0F, 1.0F);
+        float rightPage = Mth.clamp(Mth.frac(flipProgress + 0.75F) * 1.6F - 0.3F, 0.0F, 1.0F);
+        this.bookModel.setupAnim(0.0F, leftPage, rightPage, openness);
+
+        VertexConsumer buffer = guiGraphics.bufferSource().getBuffer(this.bookModel.renderType(BOOK_TEXTURE));
+        this.bookModel.renderToBuffer(guiGraphics.pose(), buffer, 15728880, OverlayTexture.NO_OVERLAY);
+        guiGraphics.flush();
+        guiGraphics.pose().popPose();
+        Lighting.setupFor3DItems();
+    }
+
+    /**
+     * Advances the book's animation once per tick: opening when there are offers,
+     * closing when there aren't, and flipping pages when the item changes.
+     */
+    private void tickBook() {
+        ItemStack item = menu.getSlot(0).getItem();
+        if (!ItemStack.matches(item, this.lastItem)) {
+            this.lastItem = item;
+            // Pick a new page to flip to, at least one page away from the current one
+            do {
+                this.flipT += (float) (this.random.nextInt(4) - this.random.nextInt(4));
+            } while (this.flip <= this.flipT + 1.0F && this.flip >= this.flipT - 1.0F);
+        }
+
+        this.oFlip = this.flip;
+        this.oOpen = this.open;
+
+        // Vanilla opens the book when it has offers; ours does the same with the previews
+        this.open += menu.previews().isEmpty() ? -0.2F : 0.2F;
+        this.open = Mth.clamp(this.open, 0.0F, 1.0F);
+
+        float flipSpeed = Mth.clamp((this.flipT - this.flip) * 0.4F, -0.2F, 0.2F);
+        this.flipA += (flipSpeed - this.flipA) * 0.9F;
+        this.flip += this.flipA;
     }
 }
