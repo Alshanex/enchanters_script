@@ -1,9 +1,6 @@
 package net.alshanex.enchanters_script.enchanting;
 
 import com.mojang.datafixers.util.Pair;
-import net.alshanex.enchanters_script.Constants;
-import net.alshanex.enchanters_script.cipher.WorldCipher;
-import net.alshanex.enchanters_script.data.CipherSavedData;
 import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
 import net.alshanex.enchanters_script.platform.Services;
 import net.alshanex.enchanters_script.registry.ModMenus;
@@ -23,7 +20,7 @@ import java.util.List;
 
 public class EnchantersTableMenu extends AbstractContainerMenu {
     static final ResourceLocation EMPTY_SLOT_LAPIS_LAZULI = ResourceLocation.withDefaultNamespace("item/empty_slot_lapis_lazuli");
-    static final ResourceLocation EMPTY_SLOT_AMETYST_SHARD = ResourceLocation.withDefaultNamespace("item/empty_slot_amethyst_shard");
+    static final ResourceLocation EMPTY_SLOT_AMETHYST_SHARD = ResourceLocation.withDefaultNamespace("item/empty_slot_amethyst_shard");
     private final Container enchantSlots;
     private final ContainerLevelAccess access;
     private final Player player;
@@ -37,6 +34,7 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
     public EnchantersTableMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access) {
         super(ModMenus.ENCHANTING_TABLE, containerId);
         this.enchantSlots = new SimpleContainer(3) {
+            @Override
             public void setChanged() {
                 super.setChanged();
                 EnchantersTableMenu.this.slotsChanged(this);
@@ -46,69 +44,82 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
         this.access = access;
         this.player = playerInventory.player;
 
-        this.addSlot(new Slot(this.enchantSlots, 0, 10, 62) {
+        // Item, at vanilla's position
+        this.addSlot(new Slot(this.enchantSlots, 0, 15, 47) {
+            @Override
             public int getMaxStackSize() {
                 return 1;
             }
+
+            @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.isEnchantable();
             }
         });
-        this.addSlot(new Slot(this.enchantSlots, 1, 28, 62) {
+
+        // Lapis
+        this.addSlot(new Slot(this.enchantSlots, 1, 35, 47) {
+            @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(Items.LAPIS_LAZULI);
             }
 
+            @Override
             public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, EnchantersTableMenu.EMPTY_SLOT_LAPIS_LAZULI);
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, EMPTY_SLOT_LAPIS_LAZULI);
             }
         });
 
-        this.addSlot(new Slot(this.enchantSlots, 2, 224, 130) {
+        // Amethyst, only shown in the bonus view
+        this.addSlot(new Slot(this.enchantSlots, 2, 8, 34) {
+            @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(Items.AMETHYST_SHARD);
             }
 
+            @Override
             public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, EnchantersTableMenu.EMPTY_SLOT_AMETYST_SHARD);
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, EMPTY_SLOT_AMETHYST_SHARD);
+            }
+
+            @Override
+            public boolean isActive() {
+                // Hidden until the bonus view exists
+                return false;
             }
         });
 
-        for(int i = 0; i < 3; ++i) {
-            for(int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, 48 + j * 18, 112 + i * 18));
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 9; ++j) {
+                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
 
-        for(int i = 0; i < 9; ++i) {
-            this.addSlot(new Slot(playerInventory, i, 48 + i * 18, 170));
+        for (int i = 0; i < 9; ++i) {
+            this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 142));
         }
     }
 
+    @Override
     public void removed(Player player) {
         super.removed(player);
         this.access.execute((level, blockPos) -> this.clearContainer(player, this.enchantSlots));
     }
 
+    @Override
     public boolean stillValid(Player player) {
         return stillValid(this.access, player, Blocks.ENCHANTING_TABLE);
     }
 
+    @Override
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack itemStack = ItemStack.EMPTY;
-        Slot slot = (Slot)this.slots.get(index);
+        Slot slot = this.slots.get(index);
         if (slot != null && slot.hasItem()) {
             ItemStack itemStack2 = slot.getItem();
             itemStack = itemStack2.copy();
-            if (index == 0) {
-                if (!this.moveItemStackTo(itemStack2, 3, 39, true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (index == 1) {
-                if (!this.moveItemStackTo(itemStack2, 3, 39, true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (index == 2) {
+            if (index < 3) {
+                // From the table to the inventory
                 if (!this.moveItemStackTo(itemStack2, 3, 39, true)) {
                     return ItemStack.EMPTY;
                 }
@@ -116,18 +127,19 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
                 if (!this.moveItemStackTo(itemStack2, 1, 2, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (itemStack2.is(Items.AMETHYST_SHARD)) {
+            } else if (itemStack2.is(Items.AMETHYST_SHARD) && this.slots.get(2).isActive()) {
+                // moveItemStackTo ignores isActive, so check it here
                 if (!this.moveItemStackTo(itemStack2, 2, 3, true)) {
                     return ItemStack.EMPTY;
                 }
             } else {
-                if (((Slot)this.slots.get(0)).hasItem() || !((Slot)this.slots.get(0)).mayPlace(itemStack2)) {
+                if (this.slots.get(0).hasItem() || !this.slots.get(0).mayPlace(itemStack2)) {
                     return ItemStack.EMPTY;
                 }
 
                 ItemStack itemStack3 = itemStack2.copyWithCount(1);
                 itemStack2.shrink(1);
-                ((Slot)this.slots.get(0)).setByPlayer(itemStack3);
+                this.slots.get(0).setByPlayer(itemStack3);
             }
 
             if (itemStack2.isEmpty()) {
@@ -157,20 +169,20 @@ public class EnchantersTableMenu extends AbstractContainerMenu {
             List<Offer> newOffers = List.of();
             List<OfferPreview> newPreviews = List.of();
 
-            if (!itemStack.isEmpty() && itemStack.isEnchantable() && level.getServer() != null) {
+            if (!itemStack.isEmpty() && itemStack.isEnchantable()) {
                 int shelves = OfferGenerator.countBookshelves(level, blockPos);
                 newOffers = OfferGenerator.generate(level.registryAccess(), itemStack, shelves, this.player.getEnchantmentSeed());
 
-                WorldCipher cipher = CipherSavedData.get(level.getServer());
                 List<OfferPreview> built = new ArrayList<>();
                 for (Offer offer : newOffers) {
-                    built.add(OfferPreview.from(offer, cipher));
+                    built.add(OfferPreview.from(offer));
                 }
                 newPreviews = built;
             }
 
             this.offers = newOffers;
 
+            // Only send when something actually changed
             if (!newPreviews.equals(this.previews)) {
                 this.previews = newPreviews;
                 if (this.player instanceof ServerPlayer serverPlayer) {

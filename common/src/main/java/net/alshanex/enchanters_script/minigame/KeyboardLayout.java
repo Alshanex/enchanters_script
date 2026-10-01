@@ -7,29 +7,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class KeyboardLayout {
-    public static List<Character> generate(String fullWord, int level, RandomSource random){
-        List<Character> uniqueChars = new ArrayList<>();
-        for(int i = 0; i < fullWord.length(); i++){
+    private KeyboardLayout() {
+    }
+
+    public static List<Character> generate(String fullWord, int level, RandomSource random) {
+        // One tile per letter, duplicates included
+        List<Character> keys = new ArrayList<>();
+        for (int i = 0; i < fullWord.length(); i++) {
             char currentChar = fullWord.charAt(i);
-
-            if(currentChar == ' ') continue;
-
-            if(!uniqueChars.contains(currentChar)){
-                uniqueChars.add(currentChar);
+            if (currentChar != ' ') {
+                keys.add(currentChar);
             }
         }
 
+        // Decoys only come from letters that aren't in the name
         List<Character> unusedChars = new ArrayList<>();
-        for(char c = 'A'; c <= 'Z'; c++){
-            if(!uniqueChars.contains(c)) unusedChars.add(c);
+        for (char c = 'A'; c <= 'Z'; c++) {
+            if (!keys.contains(c)) {
+                unusedChars.add(c);
+            }
         }
 
         Util.shuffle(unusedChars, random);
-        List<Character> decoys = unusedChars.subList(0, Math.min(2 * level, unusedChars.size()));
+        List<Character> decoys = unusedChars.subList(0, Math.min(level, unusedChars.size()));
 
-        uniqueChars.addAll(decoys);
-        Util.shuffle(uniqueChars, random);
+        keys.addAll(decoys);
+        Util.shuffle(keys, random);
 
-        return uniqueChars;
+        return keys;
     }
 }
