@@ -1,6 +1,8 @@
 package net.alshanex.enchanters_script.word;
 
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.Map;
 
@@ -21,5 +23,10 @@ public final class EnchantmentWords {
         return resultWord != null
                 ? resultWord
                 : WordBuilder.wordFromId(enchantment);
+    }
+
+    public String fullWord(Holder<Enchantment> enchantment, int level) {
+        ResourceLocation id = enchantment.unwrapKey().orElseThrow().location();
+        return WordBuilder.fullWord(baseWord(id), level, enchantment.value().getMaxLevel());
     }
 }

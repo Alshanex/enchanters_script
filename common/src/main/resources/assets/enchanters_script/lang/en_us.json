@@ -1,0 +1,7 @@
+{
+  "gui.enchanters_script.done": "Done",
+  "gui.enchanters_script.picks": "Picks: %s/%s",
+  "gui.enchanters_script.confirm": "Confirm",
+  "gui.enchanters_script.use": "Use",
+  "gui.enchanters_script.reveals_left": "%s left"
+}

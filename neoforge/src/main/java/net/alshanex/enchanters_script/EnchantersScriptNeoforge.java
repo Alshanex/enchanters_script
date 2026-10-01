@@ -3,10 +3,11 @@ package net.alshanex.enchanters_script;
 
 import net.alshanex.enchanters_script.client.ClientPayloadHandler;
 import net.alshanex.enchanters_script.data.CipherSavedData;
-import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
+import net.alshanex.enchanters_script.network.*;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.word.WordReloadListener;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
@@ -26,7 +27,6 @@ public class EnchantersScriptNeoforge {
         // project.
 
         // Use NeoForge to bootstrap the Common mod.
-        Constants.LOG.info("Hello NeoForge world!");
         CommonClass.init();
 
         eventBus.addListener(EnchantersScriptNeoforge::onRegister);
@@ -53,5 +53,12 @@ public class EnchantersScriptNeoforge {
         PayloadRegistrar registrar = event.registrar("1.0");
         registrar.playToClient(OfferPreviewsPayload.TYPE, OfferPreviewsPayload.STREAM_CODEC,
                 (payload, context) -> ClientPayloadHandler.handleOfferPreviews(payload));
+        registrar.playToClient(WritingStartPayload.TYPE, WritingStartPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.handleWritingStart(payload));
+        registrar.playToClient(BonusViewPayload.TYPE, BonusViewPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.handleBonusView(payload));
+
+        registrar.playToServer(WritingActionPayload.TYPE, WritingActionPayload.STREAM_CODEC,
+                (payload, context) -> ServerPayloadHandler.handleWritingAction((ServerPlayer) context.player(), payload));
     }
 }

@@ -1,12 +1,13 @@
 package net.alshanex.enchanters_script;
 
 import net.alshanex.enchanters_script.data.CipherSavedData;
-import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
+import net.alshanex.enchanters_script.network.*;
 import net.alshanex.enchanters_script.registry.ModMenus;
 import net.alshanex.enchanters_script.word.FabricWordReloadListener;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,12 +23,17 @@ public class EnchantersScriptFabric implements ModInitializer {
         // project.
 
         // Use Fabric to bootstrap the Common mod.
-        Constants.LOG.info("Hello Fabric world!");
         CommonClass.init();
 
         ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricWordReloadListener());
 
         PayloadTypeRegistry.playS2C().register(OfferPreviewsPayload.TYPE, OfferPreviewsPayload.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(WritingStartPayload.TYPE, WritingStartPayload.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(BonusViewPayload.TYPE, BonusViewPayload.STREAM_CODEC);
+
+        PayloadTypeRegistry.playC2S().register(WritingActionPayload.TYPE, WritingActionPayload.STREAM_CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(WritingActionPayload.TYPE,
+                (payload, context) -> ServerPayloadHandler.handleWritingAction(context.player(), payload));
 
         Registry.register(BuiltInRegistries.MENU, ModMenus.ENCHANTING_TABLE_ID, ModMenus.ENCHANTING_TABLE);
 
