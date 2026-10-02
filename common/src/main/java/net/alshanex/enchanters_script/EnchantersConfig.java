@@ -16,10 +16,8 @@ public final class EnchantersConfig {
     // Written when the file doesn't exist yet, so players can see every setting and what it does
     private static final String DEFAULT_FILE = """
             # Enchanter's Script settings.
-            # Changes apply after restarting the game or the server.
 
-            # In the writing minigame, hovering a key shows its letter
-            # if the player has already learned it. true or false.
+            # In the writing minigame, hovering a key shows its letter if the player has already learned it. true or false.
             hover_hints=true
             """;
 
