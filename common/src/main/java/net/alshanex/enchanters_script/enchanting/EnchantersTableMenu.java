@@ -1,6 +1,7 @@
 package net.alshanex.enchanters_script.enchanting;
 
 import com.mojang.datafixers.util.Pair;
+import net.alshanex.enchanters_script.EnchantersConfig;
 import net.alshanex.enchanters_script.book.CipheredBooks;
 import net.alshanex.enchanters_script.cipher.WorldCipher;
 import net.alshanex.enchanters_script.data.CipherSavedData;
@@ -429,7 +430,7 @@ public class EnchantersTableMenu extends AbstractContainerMenu implements Writin
                 words.add(EnchantmentWords.SERVER.fullWord(choice.enchantment, choice.level));
             }
 
-            this.bonus = new BonusChoices(choices, words, Math.min(rating.picks(), choices.size()));
+            this.bonus = new BonusChoices(choices, words, Math.min(rating.picks(), choices.size()), EnchantersConfig.amethystReveals());
             this.view.set(VIEW_BONUS);
             sendBonus(true);
         });

@@ -15,21 +15,21 @@ import java.util.List;
  * which letters amethyst has revealed, and the player's selection.
  */
 public final class BonusChoices {
-    private static final int MAX_REVEALS = 3;
-
     private final List<EnchantmentInstance> choices;
     private final List<String> words;
     private final List<boolean[]> revealed = new ArrayList<>();
     private final PickSelection selection;
     private int revealsUsed;
+    private final int maxReveals;
 
-    public BonusChoices(List<EnchantmentInstance> choices, List<String> words, int picks) {
+    public BonusChoices(List<EnchantmentInstance> choices, List<String> words, int picks, int maxReveals) {
         this.choices = List.copyOf(choices);
         this.words = List.copyOf(words);
         for (String word : words) {
             this.revealed.add(new boolean[word.length()]);
         }
         this.selection = new PickSelection(picks);
+        this.maxReveals = maxReveals;
     }
 
     public int size() {
@@ -44,7 +44,7 @@ public final class BonusChoices {
      * True while reveals remain and at least one card still has a hidden letter.
      */
     public boolean canReveal() {
-        if (this.revealsUsed >= MAX_REVEALS) {
+        if (this.revealsUsed >= this.maxReveals) {
             return false;
         }
         for (int i = 0; i < this.words.size(); i++) {
@@ -111,6 +111,6 @@ public final class BonusChoices {
      * Reveals still available, or 0 when nothing is left to reveal.
      */
     public int revealsLeft() {
-        return canReveal() ? MAX_REVEALS - this.revealsUsed : 0;
+        return canReveal() ? this.maxReveals - this.revealsUsed : 0;
     }
 }

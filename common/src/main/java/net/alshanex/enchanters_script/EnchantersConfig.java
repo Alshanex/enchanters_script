@@ -19,9 +19,11 @@ public final class EnchantersConfig {
     private static final String BOOK_DECIPHERING = "book_deciphering";
     private static final String REVEAL_TIME_MULTIPLIER = "reveal_time_multiplier";
     private static final String WRITING_TIME_MULTIPLIER = "writing_time_multiplier";
+    private static final String AMETHYST_REVEALS = "amethyst_reveals";
 
     private static final double MIN_MULTIPLIER = 0.5;
     private static final double MAX_MULTIPLIER = 10.0;
+    private static final int MAX_AMETHYST_REVEALS = 32;
 
     private static final String HEADER = """
             # Enchanter's Script settings.
@@ -56,6 +58,12 @@ public final class EnchantersConfig {
                 # 1.0 is normal, 2.0 doubles it. From 0.5 to 10.
                 writing_time_multiplier=1.0
                 """);
+        SETTINGS.put(AMETHYST_REVEALS, """
+        
+                # How many times Use can spend amethyst on the bonus screen, each use
+                # revealing one more letter on every card. 0 turns amethyst off. From 0 to 32.
+                amethyst_reveals=5
+                """);
     }
 
     private static boolean hoverHints = true;
@@ -63,6 +71,7 @@ public final class EnchantersConfig {
     private static boolean syncedBookDeciphering = true;
     private static double revealTimeMultiplier = 1.0;
     private static double writingTimeMultiplier = 1.0;
+    private static int amethystReveals = 5;
 
     private EnchantersConfig() {
     }
@@ -96,6 +105,7 @@ public final class EnchantersConfig {
             bookDeciphering = readBoolean(properties, BOOK_DECIPHERING, true);
             revealTimeMultiplier = readMultiplier(properties, REVEAL_TIME_MULTIPLIER);
             writingTimeMultiplier = readMultiplier(properties, WRITING_TIME_MULTIPLIER);
+            amethystReveals = readInt(properties, AMETHYST_REVEALS, 5, 0, MAX_AMETHYST_REVEALS);
         } catch (IOException e) {
             Constants.LOG.error("Couldn't read {}, using the default settings", file, e);
         }
@@ -148,13 +158,32 @@ public final class EnchantersConfig {
         return parsed;
     }
 
+    private static int readInt(Properties properties, String key, int fallback, int min, int max) {
+        String value = properties.getProperty(key);
+        if (value == null) {
+            return fallback;
+        }
+
+        int parsed;
+        try {
+            parsed = Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            Constants.LOG.warn("Setting {} should be a whole number, but is '{}'; using {}", key, value, fallback);
+            return fallback;
+        }
+
+        if (parsed < min || parsed > max) {
+            int clamped = Math.max(min, Math.min(max, parsed));
+            Constants.LOG.warn("Setting {} should be between {} and {}, but is {}; using {}", key, min, max, parsed, clamped);
+            return clamped;
+        }
+        return parsed;
+    }
+
     public static boolean hoverHints() {
         return hoverHints;
     }
 
-    /**
-     * Whether books are ciphered. The client uses the server's setting, received when joining.
-     */
     public static boolean bookDeciphering(boolean clientSide) {
         return clientSide ? syncedBookDeciphering : bookDeciphering;
     }
@@ -169,5 +198,9 @@ public final class EnchantersConfig {
 
     public static double writingTimeMultiplier() {
         return writingTimeMultiplier;
+    }
+
+    public static int amethystReveals() {
+        return amethystReveals;
     }
 }
