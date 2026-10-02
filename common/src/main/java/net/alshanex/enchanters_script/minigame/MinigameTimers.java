@@ -1,5 +1,7 @@
 package net.alshanex.enchanters_script.minigame;
 
+import net.alshanex.enchanters_script.EnchantersConfig;
+
 public final class MinigameTimers {
     // Reveal: 0.4 seconds per letter, at least 3 seconds
     private static final int REVEAL_TICKS_PER_LETTER = 8;
@@ -17,21 +19,23 @@ public final class MinigameTimers {
     }
 
     public static int revealTicks(String fullWord) {
-        return Math.max(MIN_REVEAL_TICKS, letters(fullWord) * REVEAL_TICKS_PER_LETTER);
+        int ticks = Math.max(MIN_REVEAL_TICKS, letters(fullWord) * REVEAL_TICKS_PER_LETTER);
+        return scale(ticks, EnchantersConfig.revealTimeMultiplier());
     }
 
     /**
      * Writing time at the table: the name's base time, scaled by the lapis spent.
      */
     public static int writingTicks(String fullWord, int lapis) {
-        return (int) Math.round(baseSeconds(fullWord) * lapisMultiplier(lapis)) * 20;
+        int ticks = (int) Math.round(baseSeconds(fullWord) * lapisMultiplier(lapis)) * 20;
+        return scale(ticks, EnchantersConfig.writingTimeMultiplier());
     }
 
     /**
      * Writing time for a ciphered book: the name's base time, since books use no lapis.
      */
     public static int bookTicks(String fullWord) {
-        return baseSeconds(fullWord) * 20;
+        return scale(baseSeconds(fullWord) * 20, EnchantersConfig.writingTimeMultiplier());
     }
 
     /**
@@ -59,5 +63,12 @@ public final class MinigameTimers {
     // Spaces are fixed gaps, so only letters count
     private static int letters(String fullWord) {
         return fullWord.replace(" ", "").length();
+    }
+
+    /**
+     * Applies an accessibility multiplier from the config, rounded to whole ticks.
+     */
+    private static int scale(int ticks, double multiplier) {
+        return (int) Math.round(ticks * multiplier);
     }
 }
