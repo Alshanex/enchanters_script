@@ -18,9 +18,6 @@ public final class GuiColors {
     public static final String KEY_TEXT_SELECTED = "key_text_selected";
     public static final String SLOT_TEXT = "slot_text";
     public static final String SLOT_HOVER = "slot_hover";
-    public static final String CARD_TEXT = "card_text";
-    public static final String CARD_TEXT_SELECTED = "card_text_selected";
-    public static final String CARD_TEXT_DISABLED = "card_text_disabled";
     public static final String PRIMER_KNOWN = "primer_known";
     public static final String PRIMER_UNKNOWN = "primer_unknown";
 
@@ -37,9 +34,6 @@ public final class GuiColors {
             Map.entry(KEY_TEXT_SELECTED, 0xFFFFFF80),
             Map.entry(SLOT_TEXT, 0xFFFFFFFF),
             Map.entry(SLOT_HOVER, 0x60FFFFFF),
-            Map.entry(CARD_TEXT, 0xFFFFFFFF),
-            Map.entry(CARD_TEXT_SELECTED, 0xFFFFFF80),
-            Map.entry(CARD_TEXT_DISABLED, 0xFFA0A0A0),
             Map.entry(PRIMER_KNOWN, 0xFF404040),
             Map.entry(PRIMER_UNKNOWN, 0xFF8B8B8B)
     );

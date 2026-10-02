@@ -24,10 +24,6 @@ public final class GuiTextures {
     public static final ResourceLocation BUTTON = id("button");
     public static final ResourceLocation BUTTON_HIGHLIGHTED = id("button_highlighted");
     public static final ResourceLocation BUTTON_DISABLED = id("button_disabled");
-    public static final ResourceLocation CARD = id("bonus/card");
-    public static final ResourceLocation CARD_HIGHLIGHTED = id("bonus/card_highlighted");
-    public static final ResourceLocation CARD_SELECTED = id("bonus/card_selected");
-    public static final ResourceLocation CARD_DISABLED = id("bonus/card_disabled");
     public static final ResourceLocation TIMER_BACKGROUND = id("writing/timer_background");
     public static final ResourceLocation TIMER_PROGRESS = id("writing/timer_progress");
 

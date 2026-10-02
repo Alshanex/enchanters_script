@@ -8,10 +8,12 @@ import net.alshanex.enchanters_script.minigame.BonusPreview;
 import net.alshanex.enchanters_script.minigame.PickSelection;
 import net.alshanex.enchanters_script.minigame.WritingView;
 import net.alshanex.enchanters_script.network.WritingActionPayload;
+import net.alshanex.enchanters_script.primer.Primer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -84,35 +86,35 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
     private static final float SMALL_NAME_SCALE = 0.75f;
     private static final int MAX_SMALL_NAME_LINES = 3;
 
-    // Bonus view: shards and Use on the left, cards on the right, picks and confirm below
+    // Bonus view: shards and Use on the left; cards exactly where vanilla's offer buttons are
     private static final int SHARD_X = 16;
     private static final int SHARD_Y = 24;
     private static final int USE_X = 10;
     private static final int USE_Y = 46;
     private static final int USE_WIDTH = 30;
     private static final int USE_HEIGHT = 14;
-    private static final int REVEALS_CENTER_X = 25;
-    private static final int REVEALS_Y = 64;
-    private static final int CARD_X = 46;
-    private static final int CARD_Y = 18;
-    private static final int CARD_WIDTH = 122;
-    private static final int CARD_HEIGHT = 26;
-    private static final int CARD_PITCH = 30;
-    private static final int CARD_TEXT_WIDTH = 114;
-    private static final int PICKS_Y = 112;
+    private static final int CARD_X = BUTTON_X;
+    private static final int CARD_Y = BUTTON_Y;
+    private static final int CARD_WIDTH = BUTTON_WIDTH;
+    private static final int CARD_HEIGHT = BUTTON_HEIGHT;
+    private static final int CARD_PITCH = BUTTON_HEIGHT;
+    private static final int CARD_TEXT_OFFSET = 4;
+    // Leaves room on the right for the check mark
+    private static final int CARD_TEXT_WIDTH = 88;
+    private static final float CARD_TEXT_SCALE = 1.0f;
+    private static final int PICKS_Y = 80;
     private static final int CONFIRM_X = 58;
-    private static final int CONFIRM_Y = 130;
+    private static final int CONFIRM_Y = 94;
     private static final int CONFIRM_WIDTH = 60;
     private static final int CONFIRM_HEIGHT = 16;
 
-    // Colors
-    private static final int PANEL_COLOR = 0xFFC6C6C6;
-    private static final int LABEL_COLOR = 0x404040;
-    private static final int NAME_COLOR = 0x685E4A;
-    private static final int NAME_HOVERED_COLOR = 0xFFFF80;
-    private static final int NAME_DISABLED_COLOR = 0x342F25;
-    private static final int COST_COLOR = 0x80FF20;
-    private static final int COST_DISABLED_COLOR = 0x407F10;
+    // The dark frame around vanilla's offer buttons, copied from the vanilla texture
+    private static final int FRAME_X = 59;
+    private static final int FRAME_Y = 13;
+    private static final int FRAME_WIDTH = 110;
+    private static final int FRAME_HEIGHT = 59;
+
+    private static final Component CHECK_MARK = Component.literal("\u2714");
 
     // The rotating book, as in vanilla's EnchantmentScreen
     private final RandomSource random = RandomSource.create();
@@ -288,6 +290,8 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
 
     private void renderBonus(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         guiGraphics.blit(GuiTextures.BONUS_PANEL, leftPos, topPos, 0, 0, GuiTextures.PANEL_WIDTH, GuiTextures.PANEL_HEIGHT);
+        // Vanilla's frame behind the offer buttons, so the cards sit in the same place as the offers
+        guiGraphics.blit(TEXTURE, leftPos + FRAME_X, topPos + FRAME_Y, FRAME_X, FRAME_Y, FRAME_WIDTH, FRAME_HEIGHT);
 
         // The shards Use can still spend: what the player carries, capped at the reveals left
         int shardX = leftPos + SHARD_X;
@@ -308,37 +312,52 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
                 Component.translatable("gui.enchanters_script.use"), usable > 0, mouseX, mouseY);
 
         PickSelection selection = menu.bonusSelection();
-        if (selection == null) {
-            return;
-        }
-
         List<BonusPreview> previews = menu.bonusPreviews();
-        for (int i = 0; i < previews.size(); i++) {
+
+        for (int i = 0; i < BUTTON_ROWS; i++) {
             int x = leftPos + CARD_X;
             int y = topPos + CARD_Y + i * CARD_PITCH;
+
+            // Rows without a choice look like vanilla's empty buttons, as in the offers view
+            if (selection == null || i >= previews.size()) {
+                RenderSystem.enableBlend();
+                guiGraphics.blitSprite(SLOT_DISABLED_SPRITE, x, y, CARD_WIDTH, CARD_HEIGHT);
+                RenderSystem.disableBlend();
+                continue;
+            }
 
             boolean selected = selection.isSelected(i);
             boolean available = selection.canSelect(i);
             boolean hovered = available && isInside(mouseX, mouseY, x, y, CARD_WIDTH, CARD_HEIGHT);
+            boolean lit = selected || hovered;
 
-            // Selected cards have their own sprite; cards that can't be picked right now look disabled
-            ResourceLocation sprite = !available ? GuiTextures.CARD_DISABLED
-                    : selected ? GuiTextures.CARD_SELECTED
-                    : hovered ? GuiTextures.CARD_HIGHLIGHTED
-                    : GuiTextures.CARD;
+            // Vanilla's offer button sprites
+            ResourceLocation sprite = !available ? SLOT_DISABLED_SPRITE
+                    : lit ? SLOT_HIGHLIGHTED_SPRITE
+                    : SLOT_SPRITE;
+            RenderSystem.enableBlend();
             guiGraphics.blitSprite(sprite, x, y, CARD_WIDTH, CARD_HEIGHT);
+            RenderSystem.disableBlend();
 
-            int color = GuiColors.get(selected ? GuiColors.CARD_TEXT_SELECTED
-                    : available ? GuiColors.CARD_TEXT
-                    : GuiColors.CARD_TEXT_DISABLED);
+            // The same colors as offer names
+            int color = GuiColors.get(!available ? GuiColors.OFFER_NAME_DISABLED
+                    : lit ? GuiColors.OFFER_NAME_HOVERED
+                    : GuiColors.OFFER_NAME);
             BonusPreview preview = previews.get(i);
-            drawCardLine(guiGraphics, Component.literal(preview.hint()), x + 4, y + 5, color);
-            drawCardLine(guiGraphics, GuiTextures.galactic(preview.galactic()), x + 4, y + 15, color);
+            drawCardText(guiGraphics, bonusLine(preview), x + CARD_TEXT_OFFSET, y, color);
+
+            // Hovered and selected share a sprite, so selected cards also get a mark
+            if (selected) {
+                guiGraphics.drawString(font, CHECK_MARK, x + CARD_WIDTH - 12, y + 6,
+                        GuiColors.get(GuiColors.OFFER_COST), true);
+            }
         }
 
-        Component picks = Component.translatable("gui.enchanters_script.picks", selection.count(), selection.picks());
-        guiGraphics.drawString(font, picks, leftPos + 88 - font.width(picks) / 2, topPos + PICKS_Y,
-                GuiColors.get(GuiColors.LABEL), false);
+        if (selection != null) {
+            Component picks = Component.translatable("gui.enchanters_script.picks", selection.count(), selection.picks());
+            guiGraphics.drawString(font, picks, leftPos + 88 - font.width(picks) / 2, topPos + PICKS_Y,
+                    GuiColors.get(GuiColors.LABEL), false);
+        }
 
         renderTextButton(guiGraphics, leftPos + CONFIRM_X, topPos + CONFIRM_Y, CONFIRM_WIDTH, CONFIRM_HEIGHT,
                 Component.translatable("gui.enchanters_script.confirm"), true, mouseX, mouseY);
@@ -353,14 +372,39 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
     }
 
     /**
-     * Draws one card line at full size, smaller if it would overflow the card.
+     * A bonus name as one line: Galactic symbols, with the letters amethyst revealed shown as normal letters in place.
      */
-    private void drawCardLine(GuiGraphics guiGraphics, Component text, int x, int y, int color) {
+    private static Component bonusLine(BonusPreview preview) {
+        String symbols = preview.galactic();
+        String hint = preview.hint();
+        MutableComponent line = Component.empty();
+
+        for (int i = 0; i < symbols.length(); i++) {
+            char symbol = symbols.charAt(i);
+            char revealed = hint.charAt(i);
+            if (symbol == ' ') {
+                line.append(" ");
+            } else if (revealed != Primer.UNKNOWN) {
+                // A revealed letter, in the normal font
+                line.append(Component.literal(String.valueOf(revealed)));
+            } else {
+                line.append(GuiTextures.galactic(String.valueOf(symbol)));
+            }
+        }
+        return line;
+    }
+
+    /**
+     * Draws a card's text centered vertically, at full size or smaller if it would overflow the card.
+     */
+    private void drawCardText(GuiGraphics guiGraphics, Component text, int x, int cardY, int color) {
         int width = font.width(text);
-        float scale = width > CARD_TEXT_WIDTH ? (float) CARD_TEXT_WIDTH / width : 1f;
+        float scale = Math.min(CARD_TEXT_SCALE, (float) CARD_TEXT_WIDTH / width);
+        // 7 pixels is the height of a letter without the gap below it
+        float textY = cardY + (CARD_HEIGHT - 7 * scale) / 2f;
 
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x, y, 0);
+        guiGraphics.pose().translate(x, textY, 0);
         guiGraphics.pose().scale(scale, scale, 1f);
         guiGraphics.drawString(font, text, 0, 0, color, false);
         guiGraphics.pose().popPose();

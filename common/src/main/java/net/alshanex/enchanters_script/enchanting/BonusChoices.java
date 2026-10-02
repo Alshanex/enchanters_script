@@ -3,6 +3,7 @@ package net.alshanex.enchanters_script.enchanting;
 import net.alshanex.enchanters_script.cipher.WorldCipher;
 import net.alshanex.enchanters_script.minigame.BonusPreview;
 import net.alshanex.enchanters_script.minigame.PickSelection;
+import net.alshanex.enchanters_script.primer.Primer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 
@@ -91,7 +92,7 @@ public final class BonusChoices {
             StringBuilder hint = new StringBuilder(word.length());
             for (int j = 0; j < word.length(); j++) {
                 char c = word.charAt(j);
-                hint.append(c == ' ' ? ' ' : shown[j] ? c : '?');
+                hint.append(c == ' ' ? ' ' : shown[j] ? c : Primer.UNKNOWN);
             }
             previews.add(new BonusPreview(cipher.encode(word), hint.toString()));
         }
