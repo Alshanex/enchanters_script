@@ -1,13 +1,11 @@
 package net.alshanex.enchanters_script.client;
 
 import net.alshanex.enchanters_script.Constants;
+import net.alshanex.enchanters_script.EnchantersConfig;
 import net.alshanex.enchanters_script.enchanting.EnchantersTableMenu;
 import net.alshanex.enchanters_script.enchanting.OfferPreview;
 import net.alshanex.enchanters_script.minigame.WritingMenu;
-import net.alshanex.enchanters_script.network.BonusViewPayload;
-import net.alshanex.enchanters_script.network.OfferPreviewsPayload;
-import net.alshanex.enchanters_script.network.PrimerPayload;
-import net.alshanex.enchanters_script.network.WritingStartPayload;
+import net.alshanex.enchanters_script.network.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -59,5 +57,9 @@ public final class ClientPayloadHandler {
 
     public static void handlePrimer(PrimerPayload payload) {
         Minecraft.getInstance().setScreen(new PrimerScreen(payload.page()));
+    }
+
+    public static void handleServerSettings(ServerSettingsPayload payload) {
+        EnchantersConfig.setSyncedBookDeciphering(payload.bookDeciphering());
     }
 }

@@ -12,6 +12,7 @@ import java.util.Properties;
 public final class EnchantersConfig {
     private static final String FILE_NAME = Constants.MOD_ID + ".properties";
     private static final String HOVER_HINTS = "hover_hints";
+    private static final String BOOK_DECIPHERING = "book_deciphering";
 
     // Written when the file doesn't exist yet, so players can see every setting and what it does
     private static final String DEFAULT_FILE = """
@@ -19,7 +20,16 @@ public final class EnchantersConfig {
 
             # In the writing minigame, hovering a key shows its letter if the player has already learned it. true or false.
             hover_hints=true
+            
+            # Enchanted books from loot, fishing and trades arrive ciphered and must be deciphered before use.
+            # false makes every book work as in vanilla.
+            book_deciphering=true
             """;
+
+    // This side's own setting, from the file; used by the server
+    private static boolean bookDeciphering = true;
+    // The setting received from the server this client joined; replaced on every join
+    private static boolean syncedBookDeciphering = true;
 
     private static boolean hoverHints = true;
 
@@ -39,6 +49,7 @@ public final class EnchantersConfig {
                 properties.load(reader);
             }
             hoverHints = readBoolean(properties, HOVER_HINTS, true);
+            bookDeciphering = readBoolean(properties, BOOK_DECIPHERING, true);
         } catch (IOException e) {
             Constants.LOG.error("Couldn't read {}, using the default settings", file, e);
         }
@@ -62,5 +73,16 @@ public final class EnchantersConfig {
 
     public static boolean hoverHints() {
         return hoverHints;
+    }
+
+    /**
+     * Whether books are ciphered. The client uses the server's setting, received when joining.
+     */
+    public static boolean bookDeciphering(boolean clientSide) {
+        return clientSide ? syncedBookDeciphering : bookDeciphering;
+    }
+
+    public static void setSyncedBookDeciphering(boolean enabled) {
+        syncedBookDeciphering = enabled;
     }
 }

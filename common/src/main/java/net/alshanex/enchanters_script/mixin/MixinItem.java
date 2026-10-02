@@ -21,7 +21,7 @@ public class MixinItem {
     private void openCipheredBook(Level level, Player player, InteractionHand hand,
                                   CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!CipheredBooks.isCiphered(stack)) {
+        if (!CipheredBooks.isCiphered(stack, level.isClientSide)) {
             return;
         }
 

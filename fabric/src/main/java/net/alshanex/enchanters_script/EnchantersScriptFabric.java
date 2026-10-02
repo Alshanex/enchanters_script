@@ -10,6 +10,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.core.Registry;
@@ -40,10 +41,13 @@ public class EnchantersScriptFabric implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(WritingStartPayload.TYPE, WritingStartPayload.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(BonusViewPayload.TYPE, BonusViewPayload.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(PrimerPayload.TYPE, PrimerPayload.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(ServerSettingsPayload.TYPE, ServerSettingsPayload.STREAM_CODEC);
 
         PayloadTypeRegistry.playC2S().register(WritingActionPayload.TYPE, WritingActionPayload.STREAM_CODEC);
+
         ServerPlayNetworking.registerGlobalReceiver(WritingActionPayload.TYPE,
                 (payload, context) -> ServerPayloadHandler.handleWritingAction(context.player(), payload));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> ServerSettingsPayload.sendTo(handler.player));
 
         Registry.register(BuiltInRegistries.MENU, ModMenus.ENCHANTING_TABLE_ID, ModMenus.ENCHANTING_TABLE);
         Registry.register(BuiltInRegistries.MENU, ModMenus.BOOK_ID, ModMenus.BOOK);

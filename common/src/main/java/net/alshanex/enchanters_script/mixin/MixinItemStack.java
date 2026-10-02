@@ -23,7 +23,7 @@ public class MixinItemStack {
     @Inject(method = "getTooltipLines", at = @At("RETURN"))
     private void addCipheredLines(Item.TooltipContext context, @Nullable Player player, TooltipFlag flag,
                                   CallbackInfoReturnable<List<Component>> cir) {
-        if (!CipheredBooks.isCiphered((ItemStack) (Object) this)) {
+        if (!CipheredBooks.isCiphered((ItemStack) (Object) this, player == null || player.level().isClientSide)) {
             return;
         }
 

@@ -16,6 +16,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -40,6 +41,7 @@ public class EnchantersScriptNeoforge {
 
         NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onAddReloadListeners);
         NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onServerLoad);
+        NeoForge.EVENT_BUS.addListener(EnchantersScriptNeoforge::onPlayerLoggedIn);
         eventBus.addListener(EnchantersScriptNeoforge::onRegisterPayloads);
     }
 
@@ -63,6 +65,12 @@ public class EnchantersScriptNeoforge {
         event.register(Registries.ITEM, helper -> ModItems.register(helper::register));
     }
 
+    private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ServerSettingsPayload.sendTo(player);
+        }
+    }
+
     private static void onBuildCreativeTabs(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(ModItems.PRIMER);
@@ -79,6 +87,8 @@ public class EnchantersScriptNeoforge {
                 (payload, context) -> ClientPayloadHandler.handleBonusView(payload));
         registrar.playToClient(PrimerPayload.TYPE, PrimerPayload.STREAM_CODEC,
                 (payload, context) -> ClientPayloadHandler.handlePrimer(payload));
+        registrar.playToClient(ServerSettingsPayload.TYPE, ServerSettingsPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.handleServerSettings(payload));
 
         registrar.playToServer(WritingActionPayload.TYPE, WritingActionPayload.STREAM_CODEC,
                 (payload, context) -> ServerPayloadHandler.handleWritingAction((ServerPlayer) context.player(), payload));

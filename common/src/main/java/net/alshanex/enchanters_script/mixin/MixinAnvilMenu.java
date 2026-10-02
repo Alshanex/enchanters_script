@@ -30,7 +30,8 @@ public abstract class MixinAnvilMenu extends ItemCombinerMenu {
 
     @Inject(method = "createResult", at = @At("HEAD"), cancellable = true)
     private void blockCipheredBooks(CallbackInfo ci) {
-        if (CipheredBooks.isCiphered(this.inputSlots.getItem(0)) || CipheredBooks.isCiphered(this.inputSlots.getItem(1))) {
+        if (CipheredBooks.isCiphered(this.inputSlots.getItem(0), this.player.level().isClientSide)
+                || CipheredBooks.isCiphered(this.inputSlots.getItem(1), this.player.level().isClientSide)) {
             this.resultSlots.setItem(0, ItemStack.EMPTY);
             this.cost.set(0);
             ci.cancel();

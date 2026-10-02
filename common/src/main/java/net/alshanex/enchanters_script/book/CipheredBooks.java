@@ -1,6 +1,7 @@
 package net.alshanex.enchanters_script.book;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import net.alshanex.enchanters_script.EnchantersConfig;
 import net.alshanex.enchanters_script.registry.ModComponents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -20,8 +21,10 @@ public final class CipheredBooks {
     private CipheredBooks() {
     }
 
-    public static boolean isCiphered(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) && !stack.has(ModComponents.DECIPHERED);
+    public static boolean isCiphered(ItemStack stack, boolean clientSide) {
+        return EnchantersConfig.bookDeciphering(clientSide)
+                && stack.is(Items.ENCHANTED_BOOK)
+                && !stack.has(ModComponents.DECIPHERED);
     }
 
     public static void markDeciphered(ItemStack stack) {

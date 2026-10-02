@@ -200,7 +200,7 @@ public class BookMenu extends AbstractContainerMenu implements WritingMenu {
     private void applyResult(ServerPlayer player, BookResult result) {
         ItemStack book = player.getItemInHand(this.hand);
         // The book must still be the ciphered book this minigame was for
-        if (!CipheredBooks.isCiphered(book) || this.enchantment == null) {
+        if (!CipheredBooks.isCiphered(book, false) || this.enchantment == null) {
             return;
         }
 
@@ -251,6 +251,6 @@ public class BookMenu extends AbstractContainerMenu implements WritingMenu {
     @Override
     public boolean stillValid(Player player) {
         // Closes if the book leaves the hand, for example through a command
-        return CipheredBooks.isCiphered(player.getItemInHand(this.hand));
+        return CipheredBooks.isCiphered(player.getItemInHand(this.hand), false);
     }
 }
