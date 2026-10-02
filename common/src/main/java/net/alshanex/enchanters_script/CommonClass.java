@@ -27,5 +27,6 @@ public class CommonClass {
         }
 
          */
+        EnchantersConfig.load(Services.PLATFORM.getConfigDir());
     }
 }

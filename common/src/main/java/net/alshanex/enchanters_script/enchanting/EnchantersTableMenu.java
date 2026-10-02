@@ -339,7 +339,10 @@ public class EnchantersTableMenu extends AbstractContainerMenu implements Writin
 
             // Encode everything the client will draw
             WorldCipher cipher = CipherSavedData.get(level.getServer());
-            this.writing = new WritingView(cipher.encode(fullWord), cipher.encode(tiles), revealTicks, writingTicks);
+            String hints = player instanceof ServerPlayer serverPlayer
+                    ? Primer.hintsFor(serverPlayer, tiles)
+                    : String.valueOf(Primer.UNKNOWN).repeat(tiles.length());
+            this.writing = new WritingView(cipher.encode(fullWord), cipher.encode(tiles), hints, revealTicks, writingTicks);
 
             if (player instanceof ServerPlayer serverPlayer) {
                 Services.NETWORK.sendToPlayer(serverPlayer, new WritingStartPayload(this.containerId, this.writing));

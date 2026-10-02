@@ -1,5 +1,6 @@
 package net.alshanex.enchanters_script.primer;
 
+import net.alshanex.enchanters_script.EnchantersConfig;
 import net.alshanex.enchanters_script.cipher.WorldCipher;
 import net.alshanex.enchanters_script.minigame.SlotInput;
 import net.minecraft.ChatFormatting;
@@ -30,5 +31,23 @@ public final class Primer {
             page.append(known ? letter : UNKNOWN);
         }
         return page.toString();
+    }
+
+    /**
+     * One hint per tile: its real letter if the player has learned it, '?' if not.
+     * All '?' when hover hints are turned off in the config.
+     */
+    public static String hintsFor(ServerPlayer player, String tiles) {
+        if (!EnchantersConfig.hoverHints()) {
+            return String.valueOf(UNKNOWN).repeat(tiles.length());
+        }
+
+        int mask = LearnedLetters.mask(player);
+        StringBuilder hints = new StringBuilder(tiles.length());
+        for (int i = 0; i < tiles.length(); i++) {
+            char letter = tiles.charAt(i);
+            hints.append((mask & LearnedLetters.bit(letter)) != 0 ? letter : UNKNOWN);
+        }
+        return hints.toString();
     }
 }

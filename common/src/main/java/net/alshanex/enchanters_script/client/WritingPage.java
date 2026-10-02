@@ -3,6 +3,7 @@ package net.alshanex.enchanters_script.client;
 import net.alshanex.enchanters_script.minigame.SlotInput;
 import net.alshanex.enchanters_script.minigame.WritingView;
 import net.alshanex.enchanters_script.network.WritingActionPayload;
+import net.alshanex.enchanters_script.primer.Primer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -350,7 +351,13 @@ public class WritingPage {
             guiGraphics.blitSprite(sprite, x, y, this.keySize, this.keySize);
 
             int color = !active ? GLYPH_DISABLED_COLOR : selected ? GLYPH_SELECTED_COLOR : GLYPH_COLOR;
-            drawGlyph(guiGraphics, this.input.tile(tile), x, y, this.keySize, 0xFF000000 | color);
+            // Hovering a key whose letter the player has learned shows the letter itself
+            char hint = this.view.hints().charAt(tile);
+            if (hovered && hint != Primer.UNKNOWN) {
+                drawLetter(guiGraphics, hint, x, y, this.keySize, 0xFF000000 | color);
+            } else {
+                drawGlyph(guiGraphics, this.input.tile(tile), x, y, this.keySize, 0xFF000000 | color);
+            }
         }
     }
 
@@ -376,19 +383,26 @@ public class WritingPage {
     }
 
     /**
-     * One Galactic letter centered in a box, shrunk to fit small boxes.
+     * Text centered in a box, shrunk to fit small boxes.
      */
-    private void drawGlyph(GuiGraphics guiGraphics, char letter, int x, int y, int size, int color) {
-        Component glyph = galactic(String.valueOf(letter));
+    private void drawInBox(GuiGraphics guiGraphics, Component text, int x, int y, int size, int color) {
         float scale = Math.min(1f, (size - 4) / 8f);
-        float width = this.font.width(glyph) * scale;
+        float width = this.font.width(text) * scale;
         float height = 7 * scale;
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x + (size - width) / 2f, y + (size - height) / 2f, 0);
         guiGraphics.pose().scale(scale, scale, 1f);
-        guiGraphics.drawString(this.font, glyph, 0, 0, color, true);
+        guiGraphics.drawString(this.font, text, 0, 0, color, true);
         guiGraphics.pose().popPose();
+    }
+
+    private void drawGlyph(GuiGraphics guiGraphics, char letter, int x, int y, int size, int color) {
+        drawInBox(guiGraphics, galactic(String.valueOf(letter)), x, y, size, color);
+    }
+
+    private void drawLetter(GuiGraphics guiGraphics, char letter, int x, int y, int size, int color) {
+        drawInBox(guiGraphics, Component.literal(String.valueOf(letter)), x, y, size, color);
     }
 
     private static Component galactic(String symbols) {

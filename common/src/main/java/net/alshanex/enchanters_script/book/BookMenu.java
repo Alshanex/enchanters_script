@@ -105,7 +105,8 @@ public class BookMenu extends AbstractContainerMenu implements WritingMenu {
         this.session = WritingSession.start(fullWord, tiles, serverPlayer.level().getGameTime(), revealTicks, writingTicks);
 
         WorldCipher cipher = CipherSavedData.get(serverPlayer.server);
-        this.writing = new WritingView(cipher.encode(fullWord), cipher.encode(tiles), revealTicks, writingTicks);
+        this.writing = new WritingView(cipher.encode(fullWord), cipher.encode(tiles),
+                Primer.hintsFor(serverPlayer, tiles), revealTicks, writingTicks);
         Services.NETWORK.sendToPlayer(serverPlayer, new WritingStartPayload(this.containerId, this.writing));
     }
 
