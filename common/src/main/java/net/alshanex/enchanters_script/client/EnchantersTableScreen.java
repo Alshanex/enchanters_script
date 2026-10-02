@@ -172,10 +172,10 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
         if (menu.view() == EnchantersTableMenu.VIEW_WRITING) {
             return;
         }
-        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, LABEL_COLOR, false);
+        guiGraphics.drawString(font, title, titleLabelX, titleLabelY, GuiColors.get(GuiColors.LABEL), false);
         // The inventory only shows in the offers view
         if (menu.view() == EnchantersTableMenu.VIEW_OFFERS) {
-            guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, LABEL_COLOR, false);
+            guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, GuiColors.get(GuiColors.LABEL), false);
         }
     }
 
@@ -215,13 +215,13 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
         int textWidth = TEXT_AREA_WIDTH - font.width(costText);
         int textX = x + TEXT_OFFSET;
 
-        int nameColor = !enabled ? NAME_DISABLED_COLOR
-                : hovered ? NAME_HOVERED_COLOR
-                : NAME_COLOR;
+        int nameColor = GuiColors.get(!enabled ? GuiColors.OFFER_NAME_DISABLED
+                : hovered ? GuiColors.OFFER_NAME_HOVERED
+                : GuiColors.OFFER_NAME);
         renderName(guiGraphics, preview.name(), textX, y, textWidth, nameColor);
 
         guiGraphics.drawString(font, costText, textX + textWidth, y + 9,
-                enabled ? COST_COLOR : COST_DISABLED_COLOR, true);
+                GuiColors.get(enabled ? GuiColors.OFFER_COST : GuiColors.OFFER_COST_DISABLED), true);
     }
 
     private void renderName(GuiGraphics guiGraphics, Component name, int x, int buttonY, int width, int color) {
@@ -287,13 +287,12 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
     // Bonuses
 
     private void renderBonus(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // Cover the whole inside of the panel; the title is drawn on top afterwards
-        guiGraphics.fill(leftPos + 7, topPos + 7, leftPos + 169, topPos + 159, PANEL_COLOR);
+        guiGraphics.blit(GuiTextures.BONUS_PANEL, leftPos, topPos, 0, 0, GuiTextures.PANEL_WIDTH, GuiTextures.PANEL_HEIGHT);
 
         // The shards Use can still spend: what the player carries, capped at the reveals left
         int shardX = leftPos + SHARD_X;
         int shardY = topPos + SHARD_Y;
-        renderSlotBox(guiGraphics, shardX, shardY);
+        guiGraphics.blitSprite(GuiTextures.SLOT, shardX, shardY, 18, 18);
         int usable = usableShards();
         if (usable > 0) {
             ItemStack shardStack = new ItemStack(Items.AMETHYST_SHARD, usable);
@@ -322,20 +321,24 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
             boolean available = selection.canSelect(i);
             boolean hovered = available && isInside(mouseX, mouseY, x, y, CARD_WIDTH, CARD_HEIGHT);
 
-            // Selected cards stay highlighted; cards that can't be picked right now look disabled
-            ResourceLocation sprite = !available ? BUTTON_DISABLED_SPRITE
-                    : (selected || hovered) ? BUTTON_HIGHLIGHTED_SPRITE
-                    : BUTTON_SPRITE;
+            // Selected cards have their own sprite; cards that can't be picked right now look disabled
+            ResourceLocation sprite = !available ? GuiTextures.CARD_DISABLED
+                    : selected ? GuiTextures.CARD_SELECTED
+                    : hovered ? GuiTextures.CARD_HIGHLIGHTED
+                    : GuiTextures.CARD;
             guiGraphics.blitSprite(sprite, x, y, CARD_WIDTH, CARD_HEIGHT);
 
-            int color = selected ? 0xFFFF80 : available ? 0xFFFFFF : 0xA0A0A0;
+            int color = GuiColors.get(selected ? GuiColors.CARD_TEXT_SELECTED
+                    : available ? GuiColors.CARD_TEXT
+                    : GuiColors.CARD_TEXT_DISABLED);
             BonusPreview preview = previews.get(i);
             drawCardLine(guiGraphics, Component.literal(preview.hint()), x + 4, y + 5, color);
-            drawCardLine(guiGraphics, galactic(preview.galactic()), x + 4, y + 15, color);
+            drawCardLine(guiGraphics, GuiTextures.galactic(preview.galactic()), x + 4, y + 15, color);
         }
 
         Component picks = Component.translatable("gui.enchanters_script.picks", selection.count(), selection.picks());
-        guiGraphics.drawString(font, picks, leftPos + 88 - font.width(picks) / 2, topPos + PICKS_Y, LABEL_COLOR, false);
+        guiGraphics.drawString(font, picks, leftPos + 88 - font.width(picks) / 2, topPos + PICKS_Y,
+                GuiColors.get(GuiColors.LABEL), false);
 
         renderTextButton(guiGraphics, leftPos + CONFIRM_X, topPos + CONFIRM_Y, CONFIRM_WIDTH, CONFIRM_HEIGHT,
                 Component.translatable("gui.enchanters_script.confirm"), true, mouseX, mouseY);
@@ -366,20 +369,9 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
     private void renderTextButton(GuiGraphics guiGraphics, int x, int y, int width, int height,
                                   Component label, boolean enabled, int mouseX, int mouseY) {
         boolean hovered = enabled && isInside(mouseX, mouseY, x, y, width, height);
-        ResourceLocation sprite = !enabled ? BUTTON_DISABLED_SPRITE : hovered ? BUTTON_HIGHLIGHTED_SPRITE : BUTTON_SPRITE;
-        guiGraphics.blitSprite(sprite, x, y, width, height);
-        guiGraphics.drawCenteredString(font, label, x + width / 2, y + (height - 8) / 2, enabled ? 0xFFFFFF : 0xA0A0A0);
-    }
-
-    /**
-     * A slot box in vanilla's style, since the vanilla texture has none at this position.
-     */
-    private static void renderSlotBox(GuiGraphics guiGraphics, int x, int y) {
-        guiGraphics.fill(x, y, x + 18, y + 18, 0xFF8B8B8B);
-        guiGraphics.fill(x, y, x + 17, y + 1, 0xFF373737);
-        guiGraphics.fill(x, y, x + 1, y + 17, 0xFF373737);
-        guiGraphics.fill(x + 1, y + 17, x + 18, y + 18, 0xFFFFFFFF);
-        guiGraphics.fill(x + 17, y + 1, x + 18, y + 18, 0xFFFFFFFF);
+        guiGraphics.blitSprite(GuiTextures.button(enabled, hovered), x, y, width, height);
+        guiGraphics.drawCenteredString(font, label, x + width / 2, y + (height - 8) / 2,
+                GuiColors.get(enabled ? GuiColors.BUTTON_TEXT : GuiColors.BUTTON_TEXT_DISABLED));
     }
 
     // Input

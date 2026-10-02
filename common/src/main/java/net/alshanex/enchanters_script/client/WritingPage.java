@@ -9,19 +9,16 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * The writing page: timer, name slots, keyboard and done button.
- * Knows nothing about tables, so ciphered books can reuse it; moves are
- * reported through the sender.
+ * Knows nothing about tables, so ciphered books can reuse it; moves are reported through the sender.
+ * All art comes from GuiTextures and GuiColors, so resource packs can restyle it.
  */
 public class WritingPage {
 
@@ -30,35 +27,18 @@ public class WritingPage {
         void send(int action, int slot, int key);
     }
 
-    private static final Style GALACTIC = Style.EMPTY.withFont(ResourceLocation.withDefaultNamespace("alt"));
-
-    private static final ResourceLocation KEY_SPRITE = ResourceLocation.withDefaultNamespace("widget/button");
-    private static final ResourceLocation KEY_HIGHLIGHTED_SPRITE = ResourceLocation.withDefaultNamespace("widget/button_highlighted");
-    private static final ResourceLocation KEY_DISABLED_SPRITE = ResourceLocation.withDefaultNamespace("widget/button_disabled");
-
-    // Vanilla's GUI colors, so the page blends into the container
-    private static final int PAGE_COLOR = 0xFFC6C6C6;
-    private static final int SLOT_DARK = 0xFF373737;
-    private static final int SLOT_LIGHT = 0xFFFFFFFF;
-    private static final int SLOT_INNER = 0xFF8B8B8B;
-    private static final int SLOT_HOVER = 0x60FFFFFF;
-    private static final int TIMER_TRACK_COLOR = 0xFF8B8B8B;
-    private static final int TIMER_COLOR = 0xFF2E5AAC;
-    private static final int GLYPH_COLOR = 0xFFFFFF;
-    private static final int GLYPH_DISABLED_COLOR = 0xA0A0A0;
-    private static final int GLYPH_SELECTED_COLOR = 0xFFFF80;
-
     // Layout, relative to the 176x166 panel
-    private static final int PAGE_LEFT = 7;
-    private static final int PAGE_TOP = 7;
-    private static final int PAGE_RIGHT = 169;
-    private static final int PAGE_BOTTOM = 159;
     private static final int CENTER_X = 88;
 
     private static final int TIMER_X = 8;
     private static final int TIMER_Y = 9;
     private static final int TIMER_WIDTH = 160;
     private static final int TIMER_HEIGHT = 4;
+
+    // The area between the timer and the done button, where slots and keys are centered
+    private static final int AREA_TOP = 19;
+    private static final int AREA_BOTTOM = 136;
+    private static final int SECTION_GAP = 10;
 
     private static final int LARGE_SLOT = 13;
     private static final int LARGE_SLOT_PITCH = 14;
@@ -79,11 +59,6 @@ public class WritingPage {
     private static final int DONE_Y = 142;
     private static final int DONE_WIDTH = 48;
     private static final int DONE_HEIGHT = 14;
-
-    // The area between the timer and the done button, where slots and keys are centered
-    private static final int AREA_TOP = 19;
-    private static final int AREA_BOTTOM = 136;
-    private static final int SECTION_GAP = 10;
 
     // How long the letters take to fade at the end of the reveal
     private static final float FADE_TICKS = 10f;
@@ -154,7 +129,7 @@ public class WritingPage {
     /**
      * Places the slots in rows that break between words. A space between two words on the
      * same row takes one slot's width as a gap; a space at a row break takes no room.
-     * Returns the number of rows.
+     * Rows start at y = 0; the constructor moves them into place. Returns the number of rows.
      */
     private int layoutSlots(String template, int perRow, int pitch, int size) {
         List<List<Integer>> rows = new ArrayList<>();
@@ -272,7 +247,7 @@ public class WritingPage {
         float elapsed = elapsed(partialTick);
         boolean active = acceptsInput(elapsed);
 
-        guiGraphics.fill(left + PAGE_LEFT, top + PAGE_TOP, left + PAGE_RIGHT, top + PAGE_BOTTOM, PAGE_COLOR);
+        guiGraphics.blit(GuiTextures.WRITING_PANEL, left, top, 0, 0, GuiTextures.PANEL_WIDTH, GuiTextures.PANEL_HEIGHT);
         renderTimer(guiGraphics, left, top, elapsed);
         renderSlots(guiGraphics, left, top, mouseX, mouseY, elapsed, active);
         renderKeys(guiGraphics, left, top, mouseX, mouseY, active);
@@ -282,13 +257,16 @@ public class WritingPage {
     private void renderTimer(GuiGraphics guiGraphics, int left, int top, float elapsed) {
         int x = left + TIMER_X;
         int y = top + TIMER_Y;
-        guiGraphics.fill(x, y, x + TIMER_WIDTH, y + TIMER_HEIGHT, TIMER_TRACK_COLOR);
+        guiGraphics.blitSprite(GuiTextures.TIMER_BACKGROUND, x, y, TIMER_WIDTH, TIMER_HEIGHT);
 
         // Full during the reveal, then empties over the writing time
         float writingElapsed = elapsed - this.view.revealTicks();
         float remaining = 1f - Math.max(0f, writingElapsed) / this.view.writingTicks();
         int width = Math.round(TIMER_WIDTH * Math.max(0f, Math.min(1f, remaining)));
-        guiGraphics.fill(x, y, x + width, y + TIMER_HEIGHT, TIMER_COLOR);
+        if (width > 0) {
+            // Draws the left part of the sprite instead of stretching it, so patterns empty naturally
+            guiGraphics.blitSprite(GuiTextures.TIMER_PROGRESS, TIMER_WIDTH, TIMER_HEIGHT, 0, 0, x, y, width, TIMER_HEIGHT);
+        }
     }
 
     private void renderSlots(GuiGraphics guiGraphics, int left, int top, int mouseX, int mouseY,
@@ -297,6 +275,7 @@ public class WritingPage {
         // Fully visible, then fades during the last FADE_TICKS of the reveal
         float alpha = Math.max(0f, Math.min(1f, (this.view.revealTicks() - elapsed) / FADE_TICKS));
         int alphaByte = Math.round(alpha * 255);
+        int textColor = GuiColors.get(GuiColors.SLOT_TEXT);
 
         for (int slot = 0; slot < this.input.slotCount(); slot++) {
             // Spaces are gaps: nothing to draw
@@ -306,14 +285,14 @@ public class WritingPage {
 
             int x = left + this.slotX[slot];
             int y = top + this.slotY[slot];
-            drawBox(guiGraphics, x, y, this.slotSize);
+            guiGraphics.blitSprite(GuiTextures.SLOT, x, y, this.slotSize, this.slotSize);
 
             if (revealing) {
                 // During the reveal, each slot shows the letter that belongs there.
                 // Very low alpha values are drawn fully opaque by the font, so stop drawing first
                 if (alphaByte >= 8) {
                     drawGlyph(guiGraphics, this.view.reveal().charAt(slot), x, y, this.slotSize,
-                            (alphaByte << 24) | GLYPH_COLOR);
+                            (alphaByte << 24) | (textColor & 0xFFFFFF));
                 }
                 continue;
             }
@@ -322,12 +301,12 @@ public class WritingPage {
             boolean filled = this.input.isFilled(slot);
             boolean clickable = filled || this.selectedTile != NO_TILE;
             if (active && clickable && isInside(mouseX, mouseY, x, y, this.slotSize, this.slotSize)) {
-                guiGraphics.fill(x + 1, y + 1, x + this.slotSize - 1, y + this.slotSize - 1, SLOT_HOVER);
+                guiGraphics.fill(x + 1, y + 1, x + this.slotSize - 1, y + this.slotSize - 1,
+                        GuiColors.get(GuiColors.SLOT_HOVER));
             }
 
             if (filled) {
-                drawGlyph(guiGraphics, this.input.tile(this.input.content(slot)), x, y, this.slotSize,
-                        0xFF000000 | GLYPH_COLOR);
+                drawGlyph(guiGraphics, this.input.tile(this.input.content(slot)), x, y, this.slotSize, textColor);
             }
         }
     }
@@ -339,24 +318,24 @@ public class WritingPage {
 
             // Placed tiles stay as empty keys, so the others don't jump around
             if (this.input.isUsed(tile)) {
-                guiGraphics.blitSprite(KEY_DISABLED_SPRITE, x, y, this.keySize, this.keySize);
+                guiGraphics.blitSprite(GuiTextures.BUTTON_DISABLED, x, y, this.keySize, this.keySize);
                 continue;
             }
 
             boolean selected = tile == this.selectedTile;
             boolean hovered = active && isInside(mouseX, mouseY, x, y, this.keySize, this.keySize);
-            ResourceLocation sprite = !active ? KEY_DISABLED_SPRITE
-                    : (selected || hovered) ? KEY_HIGHLIGHTED_SPRITE
-                    : KEY_SPRITE;
-            guiGraphics.blitSprite(sprite, x, y, this.keySize, this.keySize);
+            guiGraphics.blitSprite(GuiTextures.button(active, selected || hovered), x, y, this.keySize, this.keySize);
 
-            int color = !active ? GLYPH_DISABLED_COLOR : selected ? GLYPH_SELECTED_COLOR : GLYPH_COLOR;
+            int color = GuiColors.get(!active ? GuiColors.BUTTON_TEXT_DISABLED
+                    : selected ? GuiColors.KEY_TEXT_SELECTED
+                    : GuiColors.BUTTON_TEXT);
+
             // Hovering a key whose letter the player has learned shows the letter itself
             char hint = this.view.hints().charAt(tile);
             if (hovered && hint != Primer.UNKNOWN) {
-                drawLetter(guiGraphics, hint, x, y, this.keySize, 0xFF000000 | color);
+                drawLetter(guiGraphics, hint, x, y, this.keySize, color);
             } else {
-                drawGlyph(guiGraphics, this.input.tile(tile), x, y, this.keySize, 0xFF000000 | color);
+                drawGlyph(guiGraphics, this.input.tile(tile), x, y, this.keySize, color);
             }
         }
     }
@@ -365,21 +344,10 @@ public class WritingPage {
         int x = left + DONE_X;
         int y = top + DONE_Y;
         boolean hovered = active && isInside(mouseX, mouseY, x, y, DONE_WIDTH, DONE_HEIGHT);
-        ResourceLocation sprite = !active ? KEY_DISABLED_SPRITE : hovered ? KEY_HIGHLIGHTED_SPRITE : KEY_SPRITE;
-        guiGraphics.blitSprite(sprite, x, y, DONE_WIDTH, DONE_HEIGHT);
+        guiGraphics.blitSprite(GuiTextures.button(active, hovered), x, y, DONE_WIDTH, DONE_HEIGHT);
         guiGraphics.drawCenteredString(this.font, Component.translatable("gui.enchanters_script.done"),
-                x + DONE_WIDTH / 2, y + (DONE_HEIGHT - 8) / 2, active ? GLYPH_COLOR : GLYPH_DISABLED_COLOR);
-    }
-
-    /**
-     * A slot box in vanilla's style: dark top-left edges, light bottom-right edges.
-     */
-    private static void drawBox(GuiGraphics guiGraphics, int x, int y, int size) {
-        guiGraphics.fill(x, y, x + size, y + size, SLOT_INNER);
-        guiGraphics.fill(x, y, x + size - 1, y + 1, SLOT_DARK);
-        guiGraphics.fill(x, y, x + 1, y + size - 1, SLOT_DARK);
-        guiGraphics.fill(x + 1, y + size - 1, x + size, y + size, SLOT_LIGHT);
-        guiGraphics.fill(x + size - 1, y + 1, x + size, y + size, SLOT_LIGHT);
+                x + DONE_WIDTH / 2, y + (DONE_HEIGHT - 8) / 2,
+                GuiColors.get(active ? GuiColors.BUTTON_TEXT : GuiColors.BUTTON_TEXT_DISABLED));
     }
 
     /**
@@ -398,16 +366,11 @@ public class WritingPage {
     }
 
     private void drawGlyph(GuiGraphics guiGraphics, char letter, int x, int y, int size, int color) {
-        drawInBox(guiGraphics, galactic(String.valueOf(letter)), x, y, size, color);
+        drawInBox(guiGraphics, GuiTextures.galactic(String.valueOf(letter)), x, y, size, color);
     }
 
     private void drawLetter(GuiGraphics guiGraphics, char letter, int x, int y, int size, int color) {
         drawInBox(guiGraphics, Component.literal(String.valueOf(letter)), x, y, size, color);
-    }
-
-    private static Component galactic(String symbols) {
-        // Vanilla only draws lowercase with this font
-        return Component.literal(symbols.toLowerCase(Locale.ROOT)).withStyle(GALACTIC);
     }
 
     private static boolean isInside(double mouseX, double mouseY, int x, int y, int width, int height) {

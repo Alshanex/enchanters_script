@@ -17,10 +17,6 @@ import javax.annotation.Nullable;
  * The writing page on its own, for deciphering a book from the hand.
  */
 public class BookScreen extends AbstractContainerScreen<BookMenu> {
-    // Vanilla's table panel as the frame; the page covers everything inside it
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.withDefaultNamespace("textures/gui/container/enchanting_table.png");
-
     @Nullable
     private WritingPage page;
     @Nullable
@@ -32,10 +28,13 @@ public class BookScreen extends AbstractContainerScreen<BookMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         WritingPage current = currentPage();
         if (current != null) {
+            // The page draws its own panel
             current.render(guiGraphics, leftPos, topPos, mouseX, mouseY, partialTick);
+        } else {
+            // Until the minigame data arrives, show the empty panel
+            guiGraphics.blit(GuiTextures.WRITING_PANEL, leftPos, topPos, 0, 0, GuiTextures.PANEL_WIDTH, GuiTextures.PANEL_HEIGHT);
         }
     }
 

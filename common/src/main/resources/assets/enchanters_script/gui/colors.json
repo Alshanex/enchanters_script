@@ -1,0 +1,18 @@
+{
+  "label": "#404040",
+  "offer_name": "#685E4A",
+  "offer_name_hovered": "#FFFF80",
+  "offer_name_disabled": "#342F25",
+  "offer_cost": "#80FF20",
+  "offer_cost_disabled": "#407F10",
+  "button_text": "#FFFFFF",
+  "button_text_disabled": "#A0A0A0",
+  "key_text_selected": "#FFFF80",
+  "slot_text": "#FFFFFF",
+  "slot_hover": "#60FFFFFF",
+  "card_text": "#FFFFFF",
+  "card_text_selected": "#FFFF80",
+  "card_text_disabled": "#A0A0A0",
+  "primer_known": "#404040",
+  "primer_unknown": "#8B8B8B"
+}
