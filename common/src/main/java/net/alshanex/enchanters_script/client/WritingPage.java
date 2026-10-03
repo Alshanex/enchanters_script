@@ -60,6 +60,8 @@ public class WritingPage {
     private static final int DONE_WIDTH = 48;
     private static final int DONE_HEIGHT = 14;
 
+    private static final float DRAG_Z = 200f;
+
     // How long the letters take to fade at the end of the reveal
     private static final float FADE_TICKS = 10f;
     // No tile selected
@@ -79,7 +81,7 @@ public class WritingPage {
     private final int[] keyX;
     private final int[] keyY;
 
-    private int selectedTile = NO_TILE;
+    private int draggingTile = NO_TILE;
     private boolean finished;
 
     public WritingPage(Font font, WritingView view, long startTime, ActionSender sender) {
@@ -252,6 +254,27 @@ public class WritingPage {
         renderSlots(guiGraphics, left, top, mouseX, mouseY, elapsed, active);
         renderKeys(guiGraphics, left, top, mouseX, mouseY, active);
         renderDone(guiGraphics, left, top, mouseX, mouseY, active);
+        renderDragged(guiGraphics, mouseX, mouseY, active);
+    }
+
+    /**
+     * The tile being dragged, centered on the mouse and raised above everything else.
+     */
+    private void renderDragged(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean active) {
+        if (this.draggingTile == NO_TILE || !active) {
+            return;
+        }
+        int x = mouseX - this.keySize / 2;
+        int y = mouseY - this.keySize / 2;
+
+        // Text is drawn in a batch after sprites, so draw order alone can't keep slot letters behind
+        // the dragged tile; a higher depth does, like vanilla's items held on the cursor
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0, 0, DRAG_Z);
+        guiGraphics.blitSprite(GuiTextures.BUTTON_HIGHLIGHTED, x, y, this.keySize, this.keySize);
+        drawGlyph(guiGraphics, this.input.tile(this.draggingTile), x, y, this.keySize,
+                GuiColors.get(GuiColors.KEY_TEXT_SELECTED));
+        guiGraphics.pose().popPose();
     }
 
     private void renderTimer(GuiGraphics guiGraphics, int left, int top, float elapsed) {
@@ -299,7 +322,7 @@ public class WritingPage {
 
             // Highlight slots a click would change: filled ones empty, empty ones take the selected tile
             boolean filled = this.input.isFilled(slot);
-            boolean clickable = filled || this.selectedTile != NO_TILE;
+            boolean clickable = filled || this.draggingTile != NO_TILE;
             if (active && clickable && isInside(mouseX, mouseY, x, y, this.slotSize, this.slotSize)) {
                 guiGraphics.fill(x + 1, y + 1, x + this.slotSize - 1, y + this.slotSize - 1,
                         GuiColors.get(GuiColors.SLOT_HOVER));
@@ -316,19 +339,18 @@ public class WritingPage {
             int x = left + this.keyX[tile];
             int y = top + this.keyY[tile];
 
-            // Placed tiles stay as empty keys, so the others don't jump around
-            if (this.input.isUsed(tile)) {
+            // Placed tiles, and the one being dragged, leave an empty key behind
+            if (this.input.isUsed(tile) || tile == this.draggingTile) {
                 guiGraphics.blitSprite(GuiTextures.BUTTON_DISABLED, x, y, this.keySize, this.keySize);
                 continue;
             }
 
-            boolean selected = tile == this.selectedTile;
-            boolean hovered = active && isInside(mouseX, mouseY, x, y, this.keySize, this.keySize);
-            guiGraphics.blitSprite(GuiTextures.button(active, selected || hovered), x, y, this.keySize, this.keySize);
+            // Keys don't react to hovering while another tile is being dragged
+            boolean hovered = active && this.draggingTile == NO_TILE
+                    && isInside(mouseX, mouseY, x, y, this.keySize, this.keySize);
+            guiGraphics.blitSprite(GuiTextures.button(active, hovered), x, y, this.keySize, this.keySize);
 
-            int color = GuiColors.get(!active ? GuiColors.BUTTON_TEXT_DISABLED
-                    : selected ? GuiColors.KEY_TEXT_SELECTED
-                    : GuiColors.BUTTON_TEXT);
+            int color = GuiColors.get(active ? GuiColors.BUTTON_TEXT : GuiColors.BUTTON_TEXT_DISABLED);
 
             // Hovering a key whose letter the player has learned shows the letter itself
             char hint = this.view.hints().charAt(tile);
@@ -384,35 +406,25 @@ public class WritingPage {
             return false;
         }
 
-        // Keys: select, or deselect when clicked again
+        // Keys: pick the tile up
         for (int tile = 0; tile < this.input.tileCount(); tile++) {
             if (isInside(mouseX, mouseY, left + this.keyX[tile], top + this.keyY[tile], this.keySize, this.keySize)) {
                 if (!this.input.isUsed(tile)) {
-                    this.selectedTile = this.selectedTile == tile ? NO_TILE : tile;
-                    playClick();
+                    this.draggingTile = tile;
                 }
                 return true;
             }
         }
 
-        // Slots: empty a filled one, or place the selected tile in an empty one
-        for (int slot = 0; slot < this.input.slotCount(); slot++) {
-            if (this.input.isSpace(slot)) {
-                continue;
+        // Slots: clicking a filled one empties it
+        int slot = slotAt(mouseX, mouseY, left, top);
+        if (slot >= 0) {
+            if (this.input.isFilled(slot)) {
+                this.input.clear(slot);
+                this.sender.send(WritingActionPayload.CLEAR, slot, 0);
+                playClick();
             }
-            if (isInside(mouseX, mouseY, left + this.slotX[slot], top + this.slotY[slot], this.slotSize, this.slotSize)) {
-                if (this.input.isFilled(slot)) {
-                    this.input.clear(slot);
-                    this.sender.send(WritingActionPayload.CLEAR, slot, 0);
-                    playClick();
-                } else if (this.selectedTile != NO_TILE && this.input.place(slot, this.selectedTile)) {
-                    this.sender.send(WritingActionPayload.PLACE, slot, this.selectedTile);
-                    playClick();
-                    // The placed tile left the keyboard, so nothing stays selected
-                    this.selectedTile = NO_TILE;
-                }
-                return true;
-            }
+            return true;
         }
 
         if (isInside(mouseX, mouseY, left + DONE_X, top + DONE_Y, DONE_WIDTH, DONE_HEIGHT)) {
@@ -420,6 +432,50 @@ public class WritingPage {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Drops the dragged tile: into the slot under the mouse, swapping out any tile already there,
+     * or back to the keyboard anywhere else.
+     */
+    public boolean mouseReleased(double mouseX, double mouseY, int left, int top) {
+        if (this.draggingTile == NO_TILE) {
+            return false;
+        }
+        int tile = this.draggingTile;
+        this.draggingTile = NO_TILE;
+
+        // Time ran out while dragging: the tile simply returns
+        if (!acceptsInput(elapsed(0f))) {
+            return true;
+        }
+
+        int slot = slotAt(mouseX, mouseY, left, top);
+        if (slot >= 0) {
+            // Dropping on a filled slot swaps: its tile goes back to the keyboard first
+            if (this.input.isFilled(slot)) {
+                this.input.clear(slot);
+                this.sender.send(WritingActionPayload.CLEAR, slot, 0);
+            }
+            if (this.input.place(slot, tile)) {
+                this.sender.send(WritingActionPayload.PLACE, slot, tile);
+                playClick();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * The letter slot under the mouse, or -1. Spaces are gaps, not slots.
+     */
+    private int slotAt(double mouseX, double mouseY, int left, int top) {
+        for (int slot = 0; slot < this.input.slotCount(); slot++) {
+            if (!this.input.isSpace(slot) && isInside(mouseX, mouseY,
+                    left + this.slotX[slot], top + this.slotY[slot], this.slotSize, this.slotSize)) {
+                return slot;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -435,7 +491,7 @@ public class WritingPage {
 
     private void done() {
         this.finished = true;
-        this.selectedTile = NO_TILE;
+        this.draggingTile = NO_TILE;
         this.sender.send(WritingActionPayload.DONE, 0, 0);
         playClick();
     }

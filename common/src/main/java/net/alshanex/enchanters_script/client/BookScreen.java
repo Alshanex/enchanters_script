@@ -53,6 +53,20 @@ public class BookScreen extends AbstractContainerScreen<BookMenu> {
     }
 
     @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        WritingPage current = currentPage();
+        if (current != null) {
+            current.mouseReleased(mouseX, mouseY, leftPos, topPos);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        return true;
+    }
+
+    @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             return super.keyPressed(keyCode, scanCode, modifiers);

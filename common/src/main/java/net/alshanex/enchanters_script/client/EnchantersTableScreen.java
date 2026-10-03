@@ -445,6 +445,27 @@ public class EnchantersTableScreen extends AbstractContainerScreen<EnchantersTab
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (menu.view() == EnchantersTableMenu.VIEW_WRITING) {
+            WritingPage current = currentPage();
+            if (current != null) {
+                current.mouseReleased(mouseX, mouseY, leftPos, topPos);
+            }
+            return true;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        // The page draws the dragged tile itself; the container's item dragging must stay out of it
+        if (menu.view() == EnchantersTableMenu.VIEW_WRITING) {
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
     private boolean offerClicked(double mouseX, double mouseY) {
         List<OfferPreview> previews = menu.previews();
         for (int row = 0; row < previews.size(); row++) {
